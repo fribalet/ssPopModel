@@ -102,13 +102,13 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, a, b, E_star){
 			for(hr in timepoint[-tail(timepoint,1)]){
 					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), a=as.numeric(params[3]),b=as.numeric(params[4]), E_star=as.numeric(params[5]))	
 					wt <- B %*% Vhists[,hr] # calculate the projected size-frequency distribution 
-						wt[dim[1]] <- NA
-						wt <- na.spline(wt)
-					wt.norm <- wt/sum(wt) # normalize distribution
+					wt[dim(1)] <- NA
+					wt <- na.spline(wt)
+					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
 					sigma[,hr] <- abs(N_dist[, hr+1] - TotN[hr+1]*wt.norm) #observed value - fitted value
 					}
-			sigma <- colSums(sigma, na.rm=T)/colSums(N_dist[,-1], na.rm=T)
-			sigma <- sum(sigma)*1000
+			sigma <- colSums(sigma)/colSums(N_dist[,-1])
+			sigma <- sum(sigma, na.rm=T)*1000
 			return(sigma)
 
 }
@@ -146,7 +146,7 @@ determine.opt.para <- function(Vhists,N_dist,Edata,volbins){
 		
 		f <- function(params) sigma.lsq(params, Einterp, N_dist, Vhists, TotN, volbins)
 			
-		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1e-6,1e-6), upper=c(1,1,15,15,500), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100))
+		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1e-6,1e-6), upper=c(1,1,15,15,500), control=DEoptim.control(itermax=1000, reltol=1e-3, trace=1, steptol=100))
 		
 		params <- opt$optim$bestmem
 		gmax <- params[1]

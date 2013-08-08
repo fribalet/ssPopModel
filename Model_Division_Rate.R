@@ -1,19 +1,9 @@
-# [ribalet@bloom Cell_Division]
-# for i in $(seq 0 1 24); do echo "Rscript Growth_Rate.R $i synecho MBARI_2" 0 | qsub -lwalltime=06:00:00,nodes=1:ppn=1 -N synGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Growth_Rate.R $i pico MBARI_2" 0 | qsub -lwalltime=06:00:00,nodes=1:ppn=1 -N picoGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Growth_Rate.R $i ultra MBARI_2" 0 | qsub -lwalltime=06:00:00,nodes=1:ppn=1 -N ultraGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Growth_Rate.R $i nano MBARI_2" 0 | qsub -lwalltime=06:00:00,nodes=1:ppn=1 -N nanoGR$i -d.; done
-
-# for i in $(seq 0 1 24); do echo "Rscript Growth_Rate.R $i prochloro Med4_TimeCourse_July2012" | qsub -lwalltime=06:00:00,nodes=1:ppn=1 -N proGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Growth_Rate.R $i ultra Taps_TimeCourse_Dec2012" | qsub -lwalltime=12:00:00,nodes=1:ppn=1 -N tapsGR$i -d.; done
-
-
+# for i in $(seq 0 1 24); do echo "Rscript Growth_Rate.R $i synecho MBARI_2" | qsub -lwalltime=06:00:00,nodes=1:ppn=1 -N synGR$i -d.; done
 
 #  library(rgl)
 library(DEoptim)
 library(zoo)
 
-#home <- "/Volumes/ribalet/Cell_division/"; folder <- NULL; cruise <- "MBARI_1"; 
 
 home <- '~/Cell_Division/'; folder <- NULL
 
@@ -26,7 +16,6 @@ args <- commandArgs(TRUE)
 t <- as.numeric(args[1])
 phyto <- as.character(args[2])
 cruise <- as.character(args[3])
-norm <- as.numeric(args[4])
 
 
 
@@ -43,7 +32,7 @@ norm <- as.numeric(args[4])
 # Vhists <- mat$Vhists
 # N_dist <- mat$N.dist
 # Vproj <- res$Vproj
-# para <- Vproj; percentile <- cut(para, 100); plot3d(rep(1:nrow(para), breaks), rep(1:ncol(para), each=nrow(para)), z=matrix(para), col=jet.colors(100)[percentile], type='l', lwd=6)
+# para <- Vproj; percentile <- cut(para, 100); plot3d(rep(volbins , breaks), rep(1:ncol(para), each=nrow(para)), z=matrix(para), col=jet.colors(100)[percentile], type='l', lwd=6)
 
 
 	##############
@@ -68,22 +57,51 @@ norm <- as.numeric(args[4])
 	#######################
 
 	# t <- 4	
-	# phyto <- "ultra"
+	# phyto <- "prochloro"
     print(paste("time delay:", t))
 	print(paste("phytoplankton population:",phyto))
-	if(norm == 1) Size <- read.csv(paste(home,folder,cruise,"/norm.size.class_",cruise,"_",phyto,".csv", sep=""))
-	if(norm == 0) Size <- read.csv(paste(home,folder,cruise,"/size.class_",cruise,"_",phyto,".csv", sep=""))
+	
+	list <- list.files(paste(home,cruise,"/",sep=""),pattern=paste("HD.size.class_",cruise,"_",phyto,sep=""))
+	Size <- NULL
+
+	for(l in list){
+		print(l)
+		s <- read.csv(paste(home,cruise,"/",l,sep=""))
+		Size <- rbind(Size, s)
+	}
+
 	Size$time <- as.POSIXct(Size$time, tz="GMT")
 	Size$num.time <- as.numeric(Size$time)
-	Size[Size[,"size.dist"] == 0,"freq.dist"] <- 0
+	Size$volume <-  4.5889*((Size$stages/Size$fsc_beads)^1.0679)
+	
+		volume.range <- range(Size[which(Size[,"size.dist"] > 3), "volume"])
+		Size.phyto <- subset(Size, volume > volume.range[1] & volume < volume.range[2])
 
 	n.day <- round(diff(range(Size$time))); print(paste("Number of days in the dataset:",n.day))
 	start <- min(Size$time)
 
-		#percentile <- cut(Size[,"freq.dist"], 100); plot3d(x=Size$stages, y=Size$num.time, z=Size$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
+	# # Size <- read.csv(paste(home,folder,cruise,"/norm.size.class_",cruise,"_",phyto,".csv", sep=""))
+	# # Size$time <- as.POSIXct(Size$time, tz="GMT")
+	# # Size$num.time <- as.numeric(Size$time)
+	# # Size[Size[,"size.dist"] == 0,"freq.dist"] <- 0
+
+	percentile <- cut(Size.phyto[,"freq.dist"], 100); plot3d(x=Size.phyto$stages, y=Size.phyto$num.time, z=Size.phyto$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
 
 
 
+	##############################	
+	## CELL VOLUME DISTRIBUTION ##
+	##############################
+	
+	m <- 2^9 # number of size class
+	range(Size.phyto$volume)
+	diff.volume <- log(max(Size.phyto$volume/min(Size.phyto$volume)), base=2)/(m-1)
+	volbins <- min(Size.phyto$volume) * 2^((1:(m+1) -1)*diff.volume)
+		
+	
+		## OLD ## volbins <-  10^((unique(size$stages)/2^16)*3.5)/10
+
+	# sizebins <- 2*(volbins*3/(pi*4))^(1/3)# to check the actual diameter
 
 
 
@@ -91,9 +109,9 @@ norm <- as.numeric(args[4])
 	## RUN size.model.functions ##
 	##############################
 
-resol <-  60 # number of minutes per interval
-hours <- 24
-breaks <- 1 + hours*60/resol
+	resol <-  60 # number of minutes per interval
+	hours <- 24
+	breaks <- 1 + hours*60/resol
 
 	model_growth <- array(NA, dim=c(4,1))
 	
@@ -106,9 +124,24 @@ breaks <- 1 + hours*60/resol
 
 		### SELECT SIZE DISTRIBUTION for DAY i
 		#size <- subset(Size, UNIXtime < dawn[i+1]+t & UNIXtime > dawn[i]+t)
-		size <- subset(Size, time > start + 3600*t & time < start + 3600*hours + 3600*t)
+		size <- subset(Size.phyto, time > start + 3600*t & time < start + 3600*hours + 3600*t)
 
-		#percentile <- cut(size[,"freq.dist"], 100); plot3d(x=size$stages, y=size$num.time, z=size$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
+		#percentile <- cut(size[,"freq.dist"], 100); plot3d(x=size$volume, y=size$num.time, z=size$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
+
+		### rebuild size distribution according to volbins
+		HD <- cut(size$volume, volbins)
+		HD.volume <- tapply(size$volume, HD, mean)
+		HD.hist <- tapply(size$freq.dist, list(HD,size$time), mean)
+		HD.size <- tapply(size$size.dist, list(HD,size$time), mean)
+	    HD.Vhists <- matrix(HD.hist, nrow=m)
+       	HD.N_dist <- round(matrix(HD.size, nrow=m))
+   		colnames(HD.Vhists) <- colnames(HD.N_dist) <- unique(size$time)
+   		rownames(HD.Vhists) <- rownames(HD.N_dist) <- round(volbins[-length(volbins)])
+
+	    #para <- HD.Vhists; percentile <- cut(unlist(para), 100); plot3d(rep(1:nrow(para), 24), rep(1:ncol(para), each=nrow(para)), z=matrix(para), col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
+
+
+
 
 		h <- cut(size$num.time, breaks=breaks)
 		h.time.size <- tapply(size$num.time, h, mean)
@@ -116,11 +149,10 @@ breaks <- 1 + hours*60/resol
 		h.size <- t(tapply(size$size.dist, list(h,size$stages), mean))
 	    Vhists <- matrix(h.hist, ncol=breaks)
        	N_dist <- round(matrix(h.size, ncol=breaks))
-		volbins <-  10^((unique(size$stages)/2^16)*3.5)/10 # 2.0 to fit with Sosik size distribution
-		sizebins <- 2*(volbins*3/(pi*4))^(1/3)# to check the actual diameter
+		
 
 	        ### NA interpolation
-	        Vhists <- try(t(apply(Vhists, 1, na.approx)))
+	        Vhists <- try(t(apply(Vhists, 2, na.approx)))
 	        N_dist <- try(t(apply(N_dist, 1, na.approx)))
 	    #para <- Vhists; percentile <- cut(unlist(para), 100); plot3d(rep(1:nrow(para), 24), rep(1:ncol(para), each=nrow(para)), z=matrix(para), col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
 
@@ -163,8 +195,7 @@ breaks <- 1 + hours*60/resol
 		if(class(proj) !='try-error'){
 		model_growth <- matrix(cbind(as.array(model_growth), as.array(proj)), nrow=4,ncol=i+1)
 		model <- model_growth[,-1]
-	    	if(norm == 1) save(model, file=paste(home,folder,cruise,"/model_norm_growth_",cruise,"_",t,"_", phyto, sep=""))
-	    	if(norm == 0) save(model, file=paste(home,folder,cruise,"/model_growth_",cruise,"_",t,"_", phyto, sep=""))
+	    save(model, file=paste(home,folder,cruise,"/model_growth_",cruise,"_",t,"_", phyto, sep=""))
 
 	  }else{print("error during optimization")}
 }
