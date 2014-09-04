@@ -56,17 +56,17 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	
 	############################### NEW CONVERSION #################################################################################################
 	if(phyto == "synecho" | phyto == "pico" | phyto == "prochloro"){
-		Size$volume <- 10^(0.7363*log10(Size$stages/Size$fsc_beads) + 0.4191)
+		Size$volume <- 10^(0.5237*log10(Size$stages/Size$fsc_beads) + 0.2828)
 		}
 	
 	if(phyto == "ultra"){
-		Size$volume <- 10^(0.4911* log10(Size$stages/Size$fsc_beads)^2 + 1.9061*log10(Size$stages/Size$fsc_beads) + 1.0808)
+		Size$volume <- 10^(0.0.5461* log10(Size$stages/Size$fsc_beads)^2 + 1.8712*log10(Size$stages/Size$fsc_beads) + 1.0772)
 
 	}
 	
 	
 	if(phyto == "crypto" | phyto == "nano"){
-		Size$volume <- 10^(2.3842*log10(Size$stages/Size$fsc_beads) + 1.003)
+		Size$volume <- 10^(2.384*log10(Size$stages/Size$fsc_beads) + 1.003)
 
 	}
 	
