@@ -1,5 +1,6 @@
 # [ribalet@bloom Cell_Division]
 # for i in $(seq 1 1 6); do echo "Rscript Cruise_Size_distribution.R $i crypto Rhodomonas_Feb2014" | qsub -lwalltime=00:30:00,nodes=1:ppn=1 -N crypto_dist$i -d.; done
+# for i in $(seq 1 1 11); do echo "Rscript Cruise_Size_distribution.R $i prochloro Med4_TimeCourse_July2012" | qsub -lwalltime=00:30:00,nodes=1:ppn=1 -N pro_dist$i -d.; done
 
 
 args <- commandArgs(TRUE)
@@ -21,8 +22,8 @@ root <- "/misc/seaflow/"
 # home <- "/Users/francois/Documents/DATA/SeaFlow/"
 # folder <- "Cell_Division/"
 # root <- "/Volumes/seaflow/"
-# cruise <- "Rhodomonas_Feb2014"
-# phyto <- 'crypto'
+# cruise <- "Med4_TimeCourse_July2012"
+# phyto <- 'prochloro'
 # d <- 1
 
 para <- "fsc_small"
@@ -52,12 +53,15 @@ print(paste("Generating Kernel distribution of", phyto, "for cruise",cruise, "at
 		### INSTRUMENT DRIFT ###
 		########################
 		spar <- 0.45
-		beads <- subset(all.stat, pop == "beads" & fsc_small_mode < 60000)
+		beads <- subset(all.stat, pop == "beads")
 
-tiff(paste(home,folder,cruise,"/Beads_",julian.day,".tiff",sep=""),compression="lzw", width=13.5, height=10, units='in',res=150)
+		#beads$fsc_small_median <- 10^((beads$fsc_small_mode/2^16)*3.5) # FOR OLD FILES ANALYZED WITHOUT LOG TRANSFORMATION
+
+
+png(paste(home,folder,cruise,"/Beads_",julian.day,".png",sep=""), width=13.5, height=10, units='in',res=150)
 	
 		par(mfrow=c(2,1))
-		plot(beads[,"time"], beads[,paste(para,"_median",sep="")],pch=1,col='grey', ylim=c(1,10^3.5), xlim=c(min(all.stat[,"time"],na.rm=T),max(all.stat[,"time"],na.rm=T)), xlab='time',ylab=paste("BEADS",para,"_mode",sep=""), log='y')
+		plot(beads[,"time"], beads[,paste(para,"_median",sep="")],pch=1,col='grey', ylim=c(1,10^3.5), xlim=c(min(all.stat[,"time"],na.rm=T),max(all.stat[,"time"],na.rm=T)), xlab='time',ylab=paste("BEADS",para,"_median",sep=""), log='y')
 			smooth <- smooth.spline(beads[,"time"], beads[,paste(para,"_median",sep="")], spar=spar)
 			time.in.common <- subset(all.pop, time > min(beads[,'time'],na.rm=T) & time < max(beads[,'time'],na.rm=T))
 			smooth.beads <- spline(as.POSIXct(smooth$x,origin="1970-01-01",tz="GMT"), smooth$y, xout=as.POSIXct(time.in.common[,"time"],tz="GMT"))
@@ -103,7 +107,7 @@ dev.off()
 					ntot <- n * (tot/o.p.p)
 					time.class <- rep(time, n.breaks)
 					
-					dens <- density(log10(pop[,para]), n=n.breaks,from=1, to=3.5, bw="SJ", kernel='gaussian',na.rm=T)
+					dens <- density(log10(pop[,para]), n=n.breaks,from=0, to=3.5, kernel='gaussian',na.rm=T)
 					freq.dist <- dens$y*diff(dens$x)[1]
 					size.dist <- round(freq.dist * ntot)
 					stages <- round(10^dens$x,3)

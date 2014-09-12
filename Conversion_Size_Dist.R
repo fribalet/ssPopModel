@@ -1,5 +1,5 @@
 # [ribalet@bloom Cell_Division]
-# for i in $(seq 6 1 8); do echo "Rscript Conversion_Size_Dist.R $i crypto Rhodomonas_Feb2014" | qsub -lwalltime=1:00:00,nodes=1:ppn=1 -N crypto_conv$i -d.; done
+# for i in $(seq 6 1 8); do echo "Rscript Conversion_Size_Dist.R $i prochloro Med4_TimeCourse_July2012" | qsub -lwalltime=1:00:00,nodes=1:ppn=1 -N pro_conv$i -d.; done
 
 
 args <- commandArgs(TRUE)
@@ -15,8 +15,8 @@ home <- '~/Cell_Division/'
 library(zoo)
 
 # home <- "/Volumes/ribalet/Cell_division/" 
-# cruise <- "Thompson_10"
-# phyto <- "synecho"
+# cruise <- "Med4_TimeCourse_July2012"
+# phyto <- "prochloro"
 
 
 
@@ -56,36 +56,39 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	
 	############################### NEW CONVERSION #################################################################################################
 	if(phyto == "synecho" | phyto == "pico" | phyto == "prochloro"){
-		Size$volume <- 10^(0.7363*log10(Size$stages/Size$fsc_beads) + 0.4191)
+		Size$volume <- 10^(0.5237*log10(Size$stages/Size$fsc_beads) + 0.2828)
+		# Size$volume <- 10^(0.5*log10(Size$stages/Size$fsc_beads))# MIE THEORY
 		}
 	
 	if(phyto == "ultra"){
-		Size$volume <- 10^(0.4911* log10(Size$stages/Size$fsc_beads)^2 + 1.9061*log10(Size$stages/Size$fsc_beads) + 1.0808)
-
+		Size$volume <- 10^(0.5461* log10(Size$stages/Size$fsc_beads)^2 + 1.8712*log10(Size$stages/Size$fsc_beads) + 1.0772)
 	}
 	
 	
-	if(phyto == "crypto" | phyto == "nano"){
-		Size$volume <- 10^(2.3842*log10(Size$stages/Size$fsc_beads) + 1.003)
-
+	if(phyto == "crypto"){
+		Size$volume <- 10^(0.75*log10(Size$stages/Size$fsc_beads)) # MIE THEORY
+		#Size$volume <- 10^(1.2384*log10(Size$stages/Size$fsc_beads) + 1.003)
 	}
 	
-	################################################################################################################################################
-	
+	if(phyto == "nano"){
+		Size$volume <- 10^(2.2384*log10(Size$stages/Size$fsc_beads) + 1.003)
+	}
+################################################################################################################################################
+
 		#volume.range <- range(Size[which(Size[,"size.dist"] > 10), "volume"]); print(volume.range)
 		#volume.range <- range(Size[which(Size[,"freq.dist"] > 10^-2), "volume"]); print(volume.range)
 		mean.volume <- median(Size[which(Size[,"freq.dist"] == max(Size[,"freq.dist"])), "volume"]); print(mean.volume)
 		mean.diameter <- 2*((mean.volume *3)/(pi*4))^(1/3) ; print(mean.diameter)
 
-		# percentile <- cut(Size[,"freq.dist"], 100); plot3d(x=log(Size$volume), y=Size$num.time, z=Size$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
+		# percentile <- cut(Size[,"freq.dist"], 100); plot3d(x=log10(Size$volume), y=Size$num.time, z=Size$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
 	
-		volume.range <- c(mean.volume/20, mean.volume*20); print(volume.range)
+		volume.range <- c(mean.volume/5, mean.volume*2.5); print(volume.range)
 		diameter.range <- 2*((volume.range *3)/(pi*4))^(1/3) ; print(diameter.range)
 		
 	Size.phyto <- subset(Size, volume > volume.range[1] & volume < volume.range[2])
 
 
-	# percentile <- cut(Size.phyto[,"freq.dist"], 100); plot3d(x=log(Size.phyto$volume), y=Size.phyto$num.time, z=Size.phyto$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
+	 # percentile <- cut(Size.phyto[,"freq.dist"], 100); plot3d(x=(Size.phyto$volume), y=Size.phyto$num.time, z=Size.phyto$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
 
 	n.day <- round(diff(range(Size.phyto$time))); print(paste("Number of days in the dataset:",n.day))
 	start <- min(Size.phyto$time)

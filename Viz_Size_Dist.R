@@ -36,8 +36,9 @@ Size <- NULL
 	Size$num.time <- as.numeric(Size$time)
 	Size[Size[,"size.dist"] == 0,"freq.dist"] <- 0
 
-percentile <- cut(Size[,"freq.dist"], 100); plot3d(x=Size$stages/Size$fsc_beads, y=Size$time, z=Size$freq.dist, col=jet.colors(100)[percentile], type='p', lwd=1, xlab="Size distribution", ylab="Frequency", zlab="Time",axes=F)
+percentile <- cut(Size[,"freq.dist"], 100); plot3d(x=log10(Size$stages/Size$fsc_beads), y=Size$time, z=Size$freq.dist, col=jet.colors(100)[percentile], type='p', lwd=1, xlab="Size distribution", ylab="Frequency", zlab="Time",axes=F)
 
+percentile <- cut(Size[,"freq.dist"], 100); plot3d(x=Size$stages/Size$fsc_beads, y=Size$time, z=Size$freq.dist, col=jet.colors(100)[percentile], type='p', lwd=1, xlab="Size distribution", ylab="Frequency", zlab="Time",axes=F)
 
 
 
@@ -61,6 +62,7 @@ print(paste("phytoplankton population:",phyto))
 	time <- as.POSIXct(time.numc, origin="1970-01-01" ,tz="GMT")	
 
 para <- Vhists
-percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , Vhists , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
+percentile <- cut(unlist(para), 100); plot3d((rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , Vhists , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
+percentile <- cut(unlist(para), 100); plot3d(log10(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , Vhists , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
 
-
+head(distribution)

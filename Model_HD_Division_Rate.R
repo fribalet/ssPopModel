@@ -6,6 +6,7 @@
 # for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i synecho Thompson_10" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N synGR$i -d.; done
 # for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i crypto Crypto_TimeCourse_June2013" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N cryptoGR$i -d.; done
 # for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i crypto Rhodomonas_Feb2014" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N cryptoGR$i -d.; done
+# for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i prochloro Med4_TimeCourse_July2012" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N proGR$i -d.; done
 
 
 
