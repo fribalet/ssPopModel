@@ -1,0 +1,11 @@
+Package: ssPopModel
+Title: ssPopModel: A R package that uses size-structured matrix population model to estimate hourly division rates using SeaFlow data
+Version: 0.1.1
+Date: 2014-06-04
+Author: Francois Ribalet
+Maintainer: Francois Ribalet <ribalet@uw.edu>
+Description: size-based Division Rate Model.
+Depends: DEoptim, flowPhyto
+Suggests: stats, zoo, rgl
+License: GPL-2
+URL: http://seaflow.ocean.washington.edu

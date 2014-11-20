@@ -1,0 +1,6 @@
+import(flowPhyto);
+import(DEoptim);
+import(zoo);
+import(stats);
+import(rgl);
+exportPattern("^[^\\.]");
