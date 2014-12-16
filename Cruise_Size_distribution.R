@@ -144,8 +144,8 @@ for(n in d1:d2){
 			print("no beads found")
 		}
 		
-		#insert total abundance of this pop from the correct file, ** is this correct??
-		ntot <- stat[which(stat$file == file), "abundance"]
+		#insert ntot from 1/opp_evt_ratio * n_count from stats
+		ntot <- 1/stat[which(stat$file == file), "opp_evt_ratio"] * stat[which(stat$file == file), "n_count"]
 		time.class <- rep(time, n.breaks) #make vector of time to go with dist
 		
 		#Note changed the start range of density from 1 to 0 for smaller pro
