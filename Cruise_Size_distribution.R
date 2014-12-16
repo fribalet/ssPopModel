@@ -1,123 +1,168 @@
-# [ribalet@bloom Cell_Division]
-# for i in $(seq 1 1 6); do echo "Rscript Cruise_Size_distribution.R $i crypto Rhodomonas_Feb2014" | qsub -lwalltime=00:30:00,nodes=1:ppn=1 -N crypto_dist$i -d.; done
-# for i in $(seq 1 1 11); do echo "Rscript Cruise_Size_distribution.R $i prochloro Med4_TimeCourse_July2012" | qsub -lwalltime=00:30:00,nodes=1:ppn=1 -N pro_dist$i -d.; done
+#[gwennm@bloom DeepDOM/Cell_Division]
+##Run this script using the commented out code just below (paste directly into the command line), should be in the directory listed above
+# Rscript ~/DeepDOM/scripts/Cruise_Size_distribution_sqlite_GMH.R d1 d2 prochloro DeepDOM | qsub -lwalltime=00:30:00,nodes=1:ppn=1 -N DeepDOM -d.
+
+#note edit line above according to changes to script: make day input an integer number range (ie: 1,2 for 1:2). check with Chris to make sure the script above will work... esp. wall time
 
 
+#allowing arguments to be input from the command line input commented out above
 args <- commandArgs(TRUE)
-d <- as.numeric(args[1])
-phyto <- as.character(args[2])
-cruise <- as.character(args[3])
+d1 <- as.numeric(args[1]) #first argument day number to start
+d2 <- as.numeric(args[2]) #2nd argument, day number to end
+phyto <- as.character(args[3]) # 2nd arg phyto to calc size dist
+cruise <- as.character(args[4]) # 3rd arg cruise name
 
-library(flowPhyto)
+library(popcycle)
 library(stats)
 
+#########################
+### BATCH FILE inputs ###
+#########################
+#globals necessary for running on bloom
+# home <- '~/DeepDOM/Cell_Division/'
+# folder <- NULL
+# root <- "/misc/seaflow/"
 
-###################
-### BATCH FILES ###
-###################
-home <- '~/Cell_Division/'
-folder <- NULL
-root <- "/misc/seaflow/"
+#globals necessary for running on local machine connected to bloom
+home <- "/Users/gwen/Desktop/Cruises/DeepDOM_2013/seaflow/"
+folder <- "Cell_Division/"
+root <- "/Volumes/seaflow/"
+cruise <- "DeepDOM"
+phyto <- 'prochloro'
+d1 <- 1 #start day
+d2 <- 1 # end day
 
-# home <- "/Users/francois/Documents/DATA/SeaFlow/"
-# folder <- "Cell_Division/"
-# root <- "/Volumes/seaflow/"
-# cruise <- "Med4_TimeCourse_July2012"
-# phyto <- 'prochloro'
-# d <- 1
+#Globals necessary for popcycle commands: consider making an input variable to the script
+set.evt.location(paste(root, cruise, sep=""))
+set.project.location("/Volumes/gwennm/popcycle")
+set.cruise.id("march2013")
 
+#parameters for making smoothed distributions
 para <- "fsc_small"
 n.breaks <- 2^10 # 1024
-concat <- 1 # 3-minute file
+concat <- 4 # 3-minute file x 4 = 12 min chunks
 out <- NULL
 
 
-print(paste(cruise," for day",d))
-	df <- read.delim(paste(root,cruise,"/", "stats.tab",sep=""))
-	df$time <- as.POSIXct(df[,"time"],tz="GMT")
-	all.stat <- subset(df, flag == 0) 
-	all.stat$time <- as.POSIXct(all.stat[,"time"],tz="GMT")
-	all.pop <- subset(all.stat, pop == phyto)
+#write a new function to query sqlite database by parameter and population
+get.param.by.pop <- function(file.name, para, phyto, db= db.name){
+	#this sqlite query will return a table with columns: file, param, pop (only phyto)
+	sql <- paste0("SELECT opp.file, opp.", para, ", vct.pop
+		FROM opp, vct 
+		WHERE opp.cruise == vct.cruise 
+		AND opp.file == vct.file
+		AND opp.file == '", file.name, "'
+		AND opp.particle == vct.particle
+		AND vct.pop == '", phyto,"'",
+		";")
+	#to only subset good files, should add flag txt file into the db as a separate table
+	con <- dbConnect(SQLite(), dbname = db)
+	opp.slice <- dbGetQuery(con, sql)
+	dbDisconnect(con)
+	return(opp.slice)
+}
 
-	all.files <- paste(root,cruise,"/",all.pop[,"day"],"/",all.pop[,"file"],".evt.opp", sep="")
-	julian.day <- unique(basename(dirname(all.files)))[d]
-	filename <- all.files[which(basename(dirname(all.files)) == julian.day)]
-	
-	
-	stat <- subset(all.pop, day == julian.day)
+#new function to retrieve opp.evt.table from sqlite database, suggest adding to popcycle
+get.opp.evt.ratio.table <- function(db=db.name){
+	sql <- paste0("SELECT * FROM ", opp.evt.ratio.table.name)
+	con <- dbConnect(SQLite(), dbname= db)
+	table <- dbGetQuery(con, sql)
+	dbDisconnect(con)
+	return (table)
+}
 
 
-print(paste("Generating Kernel distribution of", phyto, "for cruise",cruise, "at day", julian.day))
+###########################
+### Loading stats table ###
+### keep only good data ###
+###########################
+#note: new input allows stats table to be loaded once and all days run in loop in R
+df <- get.stat.table()
+df$time <- strptime(df$time, "%Y-%m-%dT%H:%M:%S", tz="GMT")
+
+#load flag file and pare down stats to only good files
+flag <- read.table(paste(project.location,"/sqlite/flag_file.txt", sep=""), header=T)
+flag.good <- subset(flag, flag ==0)
+all.stat <- subset(df, df$file %in% flag.good$file) 
+
+#pare down stats again to only include population of interest
+all.pop <- subset(all.stat, pop == phyto)
+all.files <- all.pop$file
+julian.day <- unique(basename(dirname(all.files)))
+
+#load opp.evt.ratios to correct for true cell density, so far not necessary because I use abundance from stats table
+#oer <- get.opp.evt.ratio.table()
+
 
 		########################
 		### INSTRUMENT DRIFT ###
 		########################
+		#need this code to normalize to beads fsc_small across the whole cruise
+		
 		spar <- 0.45
-		beads <- subset(all.stat, pop == "beads")
+		beads <- subset(all.stat, pop == "beads" & fsc_small < 60000)
 
-		#beads$fsc_small_median <- 10^((beads$fsc_small_mode/2^16)*3.5) # FOR OLD FILES ANALYZED WITHOUT LOG TRANSFORMATION
-
-
-png(paste(home,folder,cruise,"/Beads_",julian.day,".png",sep=""), width=13.5, height=10, units='in',res=150)
+tiff(paste(home,folder,"/Beads_",cruise,".tiff",sep=""),compression="lzw", width=13.5, height=10, units='in',res=150)
 	
-		par(mfrow=c(2,1))
-		plot(beads[,"time"], beads[,paste(para,"_median",sep="")],pch=1,col='grey', ylim=c(1,10^3.5), xlim=c(min(all.stat[,"time"],na.rm=T),max(all.stat[,"time"],na.rm=T)), xlab='time',ylab=paste("BEADS",para,"_median",sep=""), log='y')
-			smooth <- smooth.spline(beads[,"time"], beads[,paste(para,"_median",sep="")], spar=spar)
+		plot(beads[,"time"], beads[,para],pch=1,col='grey', ylim=c(1,10^3.5), xlab='time',ylab=paste("BEADS",para,"_median",sep=""), log='y')
+			smooth <- smooth.spline(beads[,"time"], beads[,para], spar=spar)
 			time.in.common <- subset(all.pop, time > min(beads[,'time'],na.rm=T) & time < max(beads[,'time'],na.rm=T))
 			smooth.beads <- spline(as.POSIXct(smooth$x,origin="1970-01-01",tz="GMT"), smooth$y, xout=as.POSIXct(time.in.common[,"time"],tz="GMT"))
 		lines(smooth.beads, col= 'red', lwd=3)	
 			fsc_ref <- median(smooth.beads$y)
 		abline(h=fsc_ref, lwd=3, lty=2)
 
-		plot(beads[,"time"], beads[,paste(para,"_median",sep="")],pch=1,col='grey', ylim=c(1,10^3.5), xlim=c(min(stat[,"time"],na.rm=T),max(stat[,"time"],na.rm=T)), xlab='time',ylab=paste("BEADS",para,"_median",sep=""), main=paste(julian.day), log='y')
-		lines(smooth.beads, col= 'red', lwd=3)	
-		abline(h=fsc_ref, lwd=3, lty=2)
-
 dev.off()
-
 
 
 		#################################################
 		## GENERATE SIZE STRUCTURE FOR EACH TIME STAMP ##
+		## new file for all the days in range (d1,d2)  ##
 		#################################################
 
-		size.class <- NULL
+for(n in d1:d2){
+	filenames <- all.files[which(basename(dirname(all.files)) == julian.day[n])]#list all filenames from the day 'n'
+	stat <- subset(all.pop, file %in% filenames)# subset stats for only day 'n'
+	print(paste0("Generating size distribution for day ", n,": ", julian.day[n]))
+	
+	size.class <- NULL
 
-#f<- filename[1]
-
-			for (f in filename) {
-					print(paste("processing", phyto,f))
-					opp <- readSeaflow(f, transform=T)
-					vct <- try(read.delim(paste(f,".consensus.vct", sep="")),silent=FALSE)
-					opp$pop <- vct[,"pop"]
-					pop <- subset(opp, pop == phyto)
-					time <- df[df[,'day'] == flowPhyto:::.getYearDay(f) & df[,'file'] == getFileNumber(f) & df[,'pop'] == phyto, 'time']
-					id.match <- which(as.POSIXct(smooth.beads$x,origin="1970-01-01", tz="GMT") ==  time)
-					fsc_beads <- smooth.beads$y[id.match]
+	for(file in filenames){
+	#still need to figure out how to implement concat to put together 12 min chunks
+	#do we need to concat at this step? or can it wait until the model?
+		slice <- get.param.by.pop(file, para, phyto)
+		
+		#find smoothed beads from same time stamp to normalize param of interest
+		time <- stat[which(stat$file== file),"time"]
+		id.match <- which(as.POSIXct(smooth.beads$x,origin="1970-01-01", tz="GMT") ==  time)
+		fsc_beads <- smooth.beads$y[id.match]
+		if(length(fsc_beads) == 0){
+			fsc_beads <- fsc_ref
+			print("no beads found")
+		}
+		
+		#insert total abundance of this pop from the correct file, ** is this correct??
+		ntot <- stat[which(stat$file == file), "abundance"]
+		time.class <- rep(time, n.breaks) #make vector of time to go with dist
+		
+		#Note changed the start range of density from 1 to 0 for smaller pro
+		#shouldn't this range be dependent on the phyto we are trying to model? maybe this should be a range determined by the max of the slice
+		#could add an if statement, if phyto = prochloro then this range for dens
+		dens <- density(log10(slice[,para]), n=n.breaks,from=0, to=3.5, bw="SJ", kernel='gaussian',na.rm=T)
+		freq.dist <- dens$y*diff(dens$x)[1]
+		size.dist <- round(freq.dist * ntot)
+		stages <- round(10^dens$x,3)
 						
-						if(length(fsc_beads) == 0){
-							fsc_beads <- fsc_ref
-							print("no beads found")
-							}
-							
-					id <- which(stat[,'time'] == time & stat[,"pop"] == phyto)
-					tot <- stat[id, 'evt']
-					o.p.p <- stat[id, 'opp']
-					n <- stat[id, 'n']
-					ntot <- n * (tot/o.p.p)
-					time.class <- rep(time, n.breaks)
-					
-					dens <- density(log10(pop[,para]), n=n.breaks,from=0, to=3.5, kernel='gaussian',na.rm=T)
-					freq.dist <- dens$y*diff(dens$x)[1]
-					size.dist <- round(freq.dist * ntot)
-					stages <- round(10^dens$x,3)
-						
-					class <- data.frame(cbind(stages=as.numeric(stages), freq.dist=as.numeric(freq.dist), size.dist=as.numeric(size.dist), time=as.character(as.POSIXct(time.class, format="%Y-%m-%d %H:%M:%S",tz="GMT")), fsc_beads=as.numeric(round(fsc_beads))), stringsAsFactors = FALSE)
-					#class[,c(1:3,5,6)] <- apply(class[,c(1:3,5,6)],2, as.numeric)
-					size.class <- rbind(size.class, class)
-							}
-					
+		class <- data.frame(cbind(stages=as.numeric(stages), freq.dist=as.numeric(freq.dist), size.dist=as.numeric(size.dist), time=as.character(as.POSIXct(time.class, format="%Y-%m-%d %H:%M:%S",tz="GMT")), fsc_beads=as.numeric(round(fsc_beads))), stringsAsFactors = FALSE)
+		size.class <- rbind(size.class, class)
+				
+	}
+	
+	write.csv(size.class, file=paste(home,folder,"/HD.size.class_",cruise,"_",phyto,"_",julian.day[n],".csv", sep=""), row.names=FALSE, quote=FALSE)
+	print("DONE")
+}
 
-write.csv(size.class, file=paste(home,folder,cruise,"/HD.size.class_",cruise,"_",phyto,"_",julian.day,".csv", sep=""), row.names=FALSE, quote=FALSE)
-print("DONE")	
+	
+
+	
 
