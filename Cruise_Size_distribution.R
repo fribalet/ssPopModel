@@ -151,7 +151,7 @@ for(n in d1:d2){
 		#Note changed the start range of density from 1 to 0 for smaller pro
 		#shouldn't this range be dependent on the phyto we are trying to model? maybe this should be a range determined by the max of the slice
 		#could add an if statement, if phyto = prochloro then this range for dens
-		dens <- density(log10(slice[,para]), n=n.breaks,from=1, to=3.5, bw="SJ", kernel='gaussian',na.rm=T)
+		dens <- density(log10(slice[,para]), n=n.breaks,from=0, to=3.5, bw="SJ", kernel='gaussian',na.rm=T)
 		freq.dist <- dens$y*diff(dens$x)[1]
 		size.dist <- round(freq.dist * ntot)
 		stages <- round(10^dens$x,3)
