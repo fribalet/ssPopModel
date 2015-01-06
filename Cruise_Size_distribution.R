@@ -1,6 +1,6 @@
 #[gwennm@bloom DeepDOM/Cell_Division]
 ##Run this script using the commented out code just below (paste directly into the command line), should be in the directory listed above
-# Rscript ~/DeepDOM/scripts/Cruise_Size_distribution_sqlite_GMH.R 1 40 prochloro DeepDOM 
+# Rscript ~/DeepDOM/ssPopModel/Cruise_Size_distribution.R 1 40 prochloro DeepDOM 
 
 
 #Note: this code requires popcycle package, and a flag file called "flag_file.txt" in the same directory as the db.location. It produces a plot of beads across the cruise with a smoothed spline fit to estimate the ave value of the parameter (fsc_small). It also produces a .csv file for each day containing the distributions of fsc_small for the phyto called for each 3-min file.
@@ -21,20 +21,20 @@ library(stats)
 ### BATCH FILE inputs ###
 #########################
 #globals necessary for running on bloom
-# home <- '~/DeepDOM/Cell_Division/' #change to take from input, so not hardcoded in
-# folder <- NULL
-# root <- "/misc/seaflow/"
-#db.location <- "~/popcycle" #change to make variable?
+home <- '~/DeepDOM/Cell_Division/' #change to take from input, so not hardcoded in
+folder <- NULL
+root <- "/misc/seaflow/"
+db.location <- "~/popcycle" #change to make variable?
 
 #globals necessary for running on local machine connected to bloom
-home <- "/Users/gwen/Desktop/Cruises/DeepDOM_2013/seaflow/"
-folder <- "Cell_Division/"
-root <- "/Volumes/seaflow/"
-db.location <- "/Volumes/gwennm/popcycle"
-d1 <- 1 #start day
-d2 <- 2 # end day
-phyto <- 'prochloro'
-cruise <- "DeepDOM"
+# home <- "/Users/gwen/Desktop/Cruises/DeepDOM_2013/seaflow/"
+# folder <- "Cell_Division/"
+# root <- "/Volumes/seaflow/"
+# db.location <- "/Volumes/gwennm/popcycle"
+# d1 <- 1 #start day
+# d2 <- 2 # end day
+# phyto <- 'prochloro'
+# cruise <- "DeepDOM"
 
 #Globals necessary for popcycle commands: consider making an input variable to the script
 set.evt.location(paste(root, cruise, sep=""))
