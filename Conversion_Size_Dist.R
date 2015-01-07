@@ -1,20 +1,22 @@
-# [ribalet@bloom Cell_Division]
-# for i in $(seq 6 1 8); do echo "Rscript Conversion_Size_Dist.R $i prochloro Med4_TimeCourse_July2012" | qsub -lwalltime=1:00:00,nodes=1:ppn=1 -N pro_conv$i -d.; done
+# This script takes HD.size.class files and makes concatenated distributions with the calibrated cell volume from forward scatter
+#arguments of this script: (1) distributuion file location, (2) cat (number of files to concatenate?), (3) phytoplankton group, (4) cruise
+# for i in $(seq 6 1 8); do echo "Rscript Conversion_Size_Dist.R ~/DeepDOM/Cell_Division $i prochloro DeepDOM" | qsub -lwalltime=1:00:00,nodes=1:ppn=1 -N pro_conv$i -d.; done
 
 
 args <- commandArgs(TRUE)
-cat <- as.numeric(args[1])
-phyto <- as.character(args[2])
-cruise <- as.character(args[3])
+home <- as.character(args[1])
+cat <- as.numeric(args[2])
+phyto <- as.character(args[3])
+cruise <- as.character(args[4])
 
-home <- '~/Cell_Division/'
+
 
 
 
 #library(rgl)
 library(zoo)
 
-# home <- "/Volumes/ribalet/Cell_division/" 
+# home <- "/Volumes/gwennm/DeepDOM/Cell_division/" 
 # cruise <- "Med4_TimeCourse_July2012"
 # phyto <- "prochloro"
 
@@ -27,12 +29,12 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	## SIZE DISTRIBUTION ##
 	#######################
 
-	list <- list.files(paste(home,cruise,"/",sep=""),pattern=paste("HD.size.class_",cruise,"_",phyto,sep=""))
+	list <- list.files(home,pattern=paste("HD.size.class_",cruise,"_",phyto,sep=""))
 	Size <- NULL
 
 	for(l in list){
 		print(l)
-		s <- read.csv(paste(home,cruise,"/",l,sep=""))
+		s <- read.csv(paste(home,l,sep=""))
 		Size <- rbind(Size, s)
 	}
 
@@ -161,5 +163,5 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	    distribution[[1]] <- Vhists
 	    distribution[[2]] <- N_dist
 		
-	    save(distribution, file=paste(home,cruise,"/", phyto,"_dist_Ncat",m,"_",cruise,sep=""))
-	    print(paste("saving ", home,cruise,"/", phyto,"_dist_Ncat",m,"_",cruise,sep=""))
+	    save(distribution, file=paste(home, phyto,"_dist_Ncat",m,"_",cruise,sep=""))
+	    print(paste("saving ", home, phyto,"_dist_Ncat",m,"_",cruise,sep=""))
