@@ -1,5 +1,5 @@
 # This script takes HD.size.class files and makes concatenated distributions with the calibrated cell volume from forward scatter
-#arguments of this script: (1) distributuion file location, (2) cat (number of files to concatenate?), (3) phytoplankton group, (4) cruise
+#arguments of this script: (1) distributuion file location, (2) cat (2^cat number of bins), (3) phytoplankton group, (4) cruise
 # for i in $(seq 6 1 8); do echo "Rscript Conversion_Size_Dist.R ~/DeepDOM/Cell_Division $i prochloro DeepDOM" | qsub -lwalltime=1:00:00,nodes=1:ppn=1 -N pro_conv$i -d.; done
 
 
@@ -17,7 +17,7 @@ cruise <- as.character(args[4])
 library(zoo)
 
 # home <- "/Volumes/gwennm/DeepDOM/Cell_division/" 
-# cruise <- "Med4_TimeCourse_July2012"
+# cruise <- "DeepDOM"
 # phyto <- "prochloro"
 
 
@@ -60,9 +60,7 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	if(phyto == "synecho" | phyto == "pico" | phyto == "prochloro"){
 		Size$volume <- 10^(0.524*log10(Size$stages/Size$fsc_beads) + 0.283)
 		# Size$volume <- 10^(0.5*log10(Size$stages/Size$fsc_beads))# MIE THEORY
-		}
-	
-	else{
+		}else{
 		Size$volume <- 10^(1.682*log10(Size$stages/Size$fsc_beads) + 0.961)
 	}
 	
