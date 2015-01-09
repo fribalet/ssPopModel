@@ -34,7 +34,7 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 
 	for(l in list){
 		print(l)
-		s <- read.csv(paste(home,l,sep=""))
+		s <- read.csv(paste(home,l,sep="/"))
 		Size <- rbind(Size, s)
 	}
 
@@ -161,5 +161,5 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	    distribution[[1]] <- Vhists
 	    distribution[[2]] <- N_dist
 		
-	    save(distribution, file=paste(home, phyto,"_dist_Ncat",m,"_",cruise,sep=""))
-	    print(paste("saving ", home, phyto,"_dist_Ncat",m,"_",cruise,sep=""))
+	    save(distribution, file=paste(home,"/",phyto,"_dist_Ncat",m,"_",cruise,sep=""))
+	    print(paste("saving ", home,"/",phyto,"_dist_Ncat",m,"_",cruise,sep=""))
