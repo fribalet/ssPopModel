@@ -5,7 +5,6 @@
 #  library(rgl)
 library(DEoptim)
 library(zoo)
-library(popcycle)
 
 # script.home <- "/Volumes/gwennm/DeepDOM/ssPopModel"
 # in.dir <-"/Volumes/gwennm/DeepDOM/Cell_Division"
