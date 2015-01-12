@@ -16,7 +16,7 @@ cruise <- as.character(args[4])
 #library(rgl)
 library(zoo)
 
-# home <- "/Volumes/gwennm/DeepDOM/Cell_division/" 
+# home <- "/Volumes/gwennm/DeepDOM/Cell_division" 
 # cruise <- "DeepDOM"
 # phyto <- "prochloro"
 
@@ -91,6 +91,8 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	 # percentile <- cut(Size.phyto[,"freq.dist"], 100); plot3d(x=(Size.phyto$volume), y=Size.phyto$num.time, z=Size.phyto$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
 
 	n.day <- round(diff(range(Size.phyto$time))); print(paste("Number of days in the dataset:",n.day))
+	
+	#broke right here after printing the number of days in the dataset, exit with no error
 	start <- min(Size.phyto$time)
 
 	##############################	

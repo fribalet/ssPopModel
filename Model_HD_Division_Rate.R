@@ -49,10 +49,9 @@ m <- 2^6 # number of size class
 	##############
 	## PAR DATA ##
 	##############
-	#db.name = "/Volumes/gwennm/popcycle/sqlite/popcycle.db")
-	sfl <- get.sfl.table(db.name)
-	Par <- sfl[,c("date", "par")]
-	Par$time <- strptime(Par$date, "%Y-%m-%dT%H:%M:%S", tz="GMT")
+	Par.path <- paste(in.dir, "/PAR_"cruise)
+	Par <- read.csv(Par.path, sep=",")
+	Par$time <- as.POSIXct(Par$time, tz= "GMT")
 	Par$num.time <- as.numeric(Par$time)
 
 
