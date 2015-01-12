@@ -6,6 +6,14 @@
 library(DEoptim)
 library(zoo)
 
+args <- commandArgs(TRUE)
+t <- as.numeric(args[1])
+phyto <- as.character(args[2])
+cruise <- as.character(args[3])
+script.home <- as.character(args[4])
+in.dir <-as.character(args[5])
+out.dir <- as.character(args[6])
+
 # script.home <- "/Volumes/gwennm/DeepDOM/ssPopModel"
 # in.dir <-"/Volumes/gwennm/DeepDOM/Cell_Division"
 # out.dir <- "/Volumes/gwennm/DeepDOM/Cell_Division"
@@ -15,14 +23,6 @@ source(paste(script.home,'functions_modelHD.R',sep="/"), chdir = TRUE)
 
 jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow",	"#FF7F00", "red", "#7F0000"))
 
-
-args <- commandArgs(TRUE)
-t <- as.numeric(args[1])
-phyto <- as.character(args[2])
-cruise <- as.character(args[3])
-script.home <- as.character(args[4])
-in.dir <-as.character(args[5])
-out.dir <- as.character(args[6])
 
 
 
