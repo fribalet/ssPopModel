@@ -1,5 +1,5 @@
 # This script does model optimization on the phyto
-# for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i prochloro DeepDOM ~/DeepDOM/ssPopModel ~/DeepDOM/Cell_Division ~/DeepDOM/Cell_Division" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N synGR$i -d.; done
+# for i in $(seq 0 1 24); do echo "Rscript ~/DeepDOM/ssPopModel/Model_HD_Division_Rate.R $i prochloro DeepDOM ~/DeepDOM/ssPopModel ~/DeepDOM/Cell_Division ~/DeepDOM/Cell_Division" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N proGR$i -d.; done
 
 
 #  library(rgl)
@@ -14,6 +14,9 @@ script.home <- as.character(args[4])
 in.dir <-as.character(args[5])
 out.dir <- as.character(args[6])
 
+# t = 1
+# phyto= "prochloro"
+# cruise = "DeepDOM"
 # script.home <- "/Volumes/gwennm/DeepDOM/ssPopModel"
 # in.dir <-"/Volumes/gwennm/DeepDOM/Cell_Division"
 # out.dir <- "/Volumes/gwennm/DeepDOM/Cell_Division"
@@ -48,7 +51,7 @@ m <- 2^6 # number of size class
 	##############
 	## PAR DATA ##
 	##############
-	Par.path <- paste(in.dir, "/PAR_"cruise)
+	Par.path <- paste0(in.dir,"/PAR_",cruise)
 	Par <- read.csv(Par.path, sep=",")
 	Par$time <- as.POSIXct(Par$time, tz= "GMT")
 	Par$num.time <- as.numeric(Par$time)
@@ -100,7 +103,7 @@ m <- 2^6 # number of size class
 			next
 			}
 		print(paste("calculating growth projection from ",start , "to",end))
-	
+
 	
 	#plot(Par$time, Par$par, type='o'); points(c(start, end),c(0,0), col='red',pch=16, cex=2)
 
