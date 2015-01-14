@@ -1,6 +1,6 @@
 # This script takes HD.size.class files and makes concatenated distributions with the calibrated cell volume from forward scatter
 #arguments of this script: (1) distributuion file location, (2) cat (2^cat number of bins), (3) phytoplankton group, (4) cruise
-# for i in $(seq 6 1 8); do echo "Rscript Conversion_Size_Dist.R ~/DeepDOM/Cell_Division $i prochloro DeepDOM" | qsub -lwalltime=1:00:00,nodes=1:ppn=1 -N pro_conv$i -d.; done
+# for i in $(seq 6 1 8); do echo "Rscript ~/DeepDOM/ssPopModel/Conversion_Size_Dist.R ~/DeepDOM/Cell_Division $i prochloro DeepDOM" | qsub -lwalltime=8:00:00,nodes=1:ppn=1 -N pro_conv$i -d.; done
 
 
 args <- commandArgs(TRUE)
@@ -149,12 +149,12 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 		N_dist <- t(tapply(Size.volume$HD.size, list(h,Size.volume$HD.volume), mean))
 		
 	        ### NA interpolation
-	        Vhists <- try(t(apply(Vhists, 1, function(x) na.approx(x, na.rm=F))))
-	        N_dist <- try(t(apply(N_dist, 1, function(x) na.approx(x, na.rm=F))))
+	        # Vhists <- try(t(apply(Vhists, 1, function(x) na.approx(x, na.rm=F))))
+	        # N_dist <- try(t(apply(N_dist, 1, function(x) na.approx(x, na.rm=F))))
 	     	
-	     	id <- findInterval(h.time, na.approx(time, na.rm=F))
+	     	# id <- findInterval(h.time, na.approx(time, na.rm=F))
 
-	     	colnames(Vhists) <- colnames(N_dist) <- h.time[id]
+	     	# colnames(Vhists) <- colnames(N_dist) <- h.time[id]
 	    
 	    # para <- Vhists; percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , Vhists , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
 	    
