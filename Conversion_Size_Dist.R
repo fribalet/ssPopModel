@@ -40,6 +40,7 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 
 	Size$time <- as.POSIXct(Size$time, tz="GMT")
 	Size$num.time <- as.numeric(Size$time)
+	Size <- Size[order(Size$num.time),]
 	
 	
 	
@@ -99,7 +100,7 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	## CELL VOLUME DISTRIBUTION ##
 	##############################
 	
-# cat <- 8
+# cat <- 6
 	
 	###############################
 	m <- 2^cat # number of Size class
@@ -132,9 +133,11 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 		HD.volume <- as.vector(rep(volbins, length(unique(Size.phyto$time))))
 		HD.time <- rep(unique(Size.phyto$time), each=m)
 		HD.hist <- tapply(Size.phyto$freq.dist, list(HD,Size.phyto$time), mean)
-			HD.hist <- as.vector(apply(HD.hist, 2, function(x) na.approx(x, na.rm=F)))
+		HD.hist <- as.vector(HD.hist)
+		#	HD.hist <- as.vector(apply(HD.hist, 2, function(x) na.approx(x, na.rm=F)))
 		HD.size <- tapply(Size.phyto$size.dist, list(HD,Size.phyto$time), mean)
-			HD.size <- as.vector(apply(HD.size, 2, function(x) na.approx(x, na.rm=F)))
+		HD.size <- as.vector(HD.size)
+		#	HD.size <- as.vector(apply(HD.size, 2, function(x) na.approx(x, na.rm=F)))
 
 	    # para <- HD.hist; percentile <- cut(para, 100); plot3d(log(HD.volume), HD.time, HD.hist, col=jet.colors(100)[percentile], type='l', lwd=2, xlab="size class", ylab="time", zlab="Frequency")
 
@@ -154,7 +157,7 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	     	
 	     	# id <- findInterval(h.time, na.approx(time, na.rm=F))
 
-	     	# colnames(Vhists) <- colnames(N_dist) <- h.time[id]
+	     	colnames(Vhists) <- colnames(N_dist) <- time
 	    
 	    # para <- Vhists; percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , Vhists , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
 	    
