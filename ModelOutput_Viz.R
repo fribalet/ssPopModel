@@ -1,19 +1,23 @@
 ## MODEL
-cruise <- "Thompson_9"
-location.model <- "/Volumes/ribalet/Cell_Division/"
+cruise <- "DeepDOM"
+location.model <- "/Volumes/gwennm/DeepDOM/Cell_Division"
 phyto <- 'prochloro'
-cat <- 64 # number of size bin
+cat <- 2^6 # number of size bin
+n.day <- 39 #number of days in dataset, need for below because it did not find in loading model, may be a bug somewhere?
+
+library(rgl)
 
 
-all.filelist <- list.files(paste(location.model,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""))
+all.filelist <- list.files(paste0(location.model,"/"),pattern=paste0(phyto,"_modelHD_growth_",cruise,"_Ncat",cat))
 filelist <- all.filelist[grep(pattern=paste(phyto), all.filelist)]
 
 n <- c <- 1
 Conc.all <- N.proj.all <- V.hist.all <- div.rate <- para.all <- Col <- NULL
 
+
 for(file in filelist){
-    #file <- filelist[11]
-    load(paste(location.model ,cruise,file, sep="/"))
+    #file <- filelist[2]
+    load(paste(location.model,file, sep="/"))
     print(file)
     print(n)
         dim <- conc.proj.all <- n.proj.all <- v.hist.all <- dr.all <- p.all <- NULL
@@ -77,7 +81,8 @@ c <- c + 1
     Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]
     Para.all <- para.all[order(para.all[,"time"]),]
         
-  ### VISUALIZATION      
+  ### VISUALIZATION    
+	jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow",	"#FF7F00", "red", "#7F0000"))  
     para <- Vproj
     percentile <- cut(unlist(para), 100); plot3d(rep(1:dim(para)[1], dim(para)[2]), rep(1:dim(para)[2], each=dim(para)[1]), z=matrix(para), col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
 
