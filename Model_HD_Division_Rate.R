@@ -1,5 +1,5 @@
 # This script does model optimization on the phyto
-# for i in $(seq 0 1 24); do echo "Rscript ~/DeepDOM/ssPopModel/Model_HD_Division_Rate.R $i prochloro DeepDOM ~/DeepDOM/ssPopModel ~/DeepDOM/Cell_Division ~/DeepDOM/Cell_Division" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N proGR$i -d.; done
+# for i in $(seq 0 1 24); do echo "Rscript ~/DeepDOM/ssPopModel/Model_HD_Division_Rate.R $i prochloro DeepDOM ~/DeepDOM/ssPopModel ~/DeepDOM/Cell_Division ~/DeepDOM/Cell_Division" | qsub -lwalltime=30:00:00,nodes=1:ppn=1 -N proGR$i -d.; done
 
 
 #  library(rgl)
@@ -69,7 +69,7 @@ m <- 2^6 # number of size class
 	
 	load(paste(in.dir,"/", phyto,"_dist_Ncat",m,"_",cruise,sep=""))
 	Vhists <- distribution[[1]]
-	Vhists <- sweep(Vhists, 2, colSums(Vhists), '/') # Normalize each column of VHists to 1
+	#Vhists <- sweep(Vhists, 2, colSums(Vhists), '/') # Normalize each column of VHists to 1 #this caused a bug erasing the first section of my data, because colSums = NA	
 	N_dist <- distribution[[2]]
 
 	volbins <- as.numeric(row.names(Vhists))
@@ -77,7 +77,7 @@ m <- 2^6 # number of size class
 
 	time.numc <- as.numeric(colnames(Vhists))	
 	time <- as.POSIXct(time.numc, origin="1970-01-01" ,tz="GMT")	
-	n.day <- round(diff(range(time))); print(paste("Number of days in the dataset:",n.day))
+	n.day <- round(diff(range(na.omit(time)))); print(paste("Number of days in the dataset:",n.day))
 
 	# para <- Vhists; percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , Vhists , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
 	
@@ -94,7 +94,7 @@ m <- 2^6 # number of size class
 
 	for(i in seq(1,length(time)-24, 24)){
 		print(paste("starting hour:",i+t))
-		#i <- 96
+		#i <- 120
 		start <- time[i+t]
 		end <- time[(i+t)+24]
 		
@@ -102,6 +102,14 @@ m <- 2^6 # number of size class
 			print("cycle is less than 24h")
 			next
 			}
+		if(is.na(start)){
+			print("NA in start time, skip ahead")
+			next
+		}
+		if(sum(is.na(time[i:(i+24)+t]))>4){
+			print("more than 4 hours missing from time period, skip ahead")
+			next
+		}
 		print(paste("calculating growth projection from ",start , "to",end))
 
 	

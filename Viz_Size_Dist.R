@@ -57,10 +57,10 @@ m <- 64
 
 print(paste("phytoplankton population:",phyto))
 	
-	load(paste(home,"/", phyto,"_dist_Ncat",m,"_",cruise,sep=""))
+	load(paste(home, phyto,"_dist_Ncat",m,"_",cruise,sep=""))
 
 	Vhists <- distribution[[1]]
-	Vhists <- sweep(Vhists, 2, colSums(Vhists), '/') # Normalize each column of VHists to 1
+	#Vhists <- sweep(Vhists, 2, colSums(Vhists), '/') # Normalize each column of VHists to 1
 	N_dist <- distribution[[2]]
 
 	volbins <- as.numeric(row.names(Vhists))
