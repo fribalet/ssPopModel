@@ -94,7 +94,7 @@ m <- 2^6 # number of size class
 
 	for(i in seq(1,length(time)-24, 24)){
 		print(paste("starting hour:",i+t))
-		#i <- 120
+		#i <- 25
 		start <- time[i+t]
 		end <- time[(i+t)+24]
 		
@@ -118,6 +118,12 @@ m <- 2^6 # number of size class
 		### SELECT SIZE DISTRIBUTION for DAY i
 		V.hists <- Vhists[,c(i:(i+24)+t)]
 		N.dist <- N_dist[,c(i:(i+24)+t)]
+		
+		# #NAs break this part and need to be made into zeros
+			mk.zero <- which(is.na(V.hists))
+			V.hists[mk.zero] <- 0
+			mk.zero <- which(is.na(N.dist))
+			N.dist[mk.zero] <- 0
 
 	    # para <- V.hists; percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para))), dim(para)[2]), rep(as.numeric(colnames(para)), each=dim(para)[1]), para , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
 
