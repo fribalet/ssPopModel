@@ -1,21 +1,23 @@
-# [ribalet@bloom Cell_Division]
-# for i in $(seq 6 1 8); do echo "Rscript Conversion_Size_Dist.R $i prochloro Med4_TimeCourse_July2012" | qsub -lwalltime=1:00:00,nodes=1:ppn=1 -N pro_conv$i -d.; done
+# This script takes HD.size.class files and makes concatenated distributions with the calibrated cell volume from forward scatter
+#arguments of this script: (1) distributuion file location, (2) cat (2^cat number of bins), (3) phytoplankton group, (4) cruise
+# for i in $(seq 6 1 8); do echo "Rscript ~/DeepDOM/ssPopModel/Conversion_Size_Dist.R ~/DeepDOM/Cell_Division $i prochloro DeepDOM" | qsub -lwalltime=8:00:00,nodes=1:ppn=1 -N pro_conv$i -d.; done
 
 
 args <- commandArgs(TRUE)
-cat <- as.numeric(args[1])
-phyto <- as.character(args[2])
-cruise <- as.character(args[3])
+home <- as.character(args[1])
+cat <- as.numeric(args[2])
+phyto <- as.character(args[3])
+cruise <- as.character(args[4])
 
-home <- '~/Cell_Division/'
+
 
 
 
 #library(rgl)
 library(zoo)
 
-# home <- "/Volumes/ribalet/Cell_division/" 
-# cruise <- "Med4_TimeCourse_July2012"
+# home <- "/Volumes/gwennm/DeepDOM/Cell_division" 
+# cruise <- "DeepDOM"
 # phyto <- "prochloro"
 
 
@@ -27,17 +29,18 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	## SIZE DISTRIBUTION ##
 	#######################
 
-	list <- list.files(paste(home,cruise,"/",sep=""),pattern=paste("HD.size.class_",cruise,"_",phyto,sep=""))
+	list <- list.files(home,pattern=paste("HD.size.class_",cruise,"_",phyto,sep=""))
 	Size <- NULL
 
 	for(l in list){
 		print(l)
-		s <- read.csv(paste(home,cruise,"/",l,sep=""))
+		s <- read.csv(paste(home,l,sep="/"))
 		Size <- rbind(Size, s)
 	}
 
 	Size$time <- as.POSIXct(Size$time, tz="GMT")
 	Size$num.time <- as.numeric(Size$time)
+	Size <- Size[order(Size$num.time),]
 	
 	
 	
@@ -58,9 +61,7 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	if(phyto == "synecho" | phyto == "pico" | phyto == "prochloro"){
 		Size$volume <- 10^(0.524*log10(Size$stages/Size$fsc_beads) + 0.283)
 		# Size$volume <- 10^(0.5*log10(Size$stages/Size$fsc_beads))# MIE THEORY
-		}
-	
-	else{
+		}else{
 		Size$volume <- 10^(1.682*log10(Size$stages/Size$fsc_beads) + 0.961)
 	}
 	
@@ -91,13 +92,15 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	 # percentile <- cut(Size.phyto[,"freq.dist"], 100); plot3d(x=(Size.phyto$volume), y=Size.phyto$num.time, z=Size.phyto$freq.dist, col=jet.colors(100)[percentile], type='l', lwd=2)
 
 	n.day <- round(diff(range(Size.phyto$time))); print(paste("Number of days in the dataset:",n.day))
+	
+	#broke right here after printing the number of days in the dataset, exit with no error
 	start <- min(Size.phyto$time)
 
 	##############################	
 	## CELL VOLUME DISTRIBUTION ##
 	##############################
 	
-# cat <- 8
+# cat <- 6
 	
 	###############################
 	m <- 2^cat # number of Size class
@@ -130,9 +133,11 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 		HD.volume <- as.vector(rep(volbins, length(unique(Size.phyto$time))))
 		HD.time <- rep(unique(Size.phyto$time), each=m)
 		HD.hist <- tapply(Size.phyto$freq.dist, list(HD,Size.phyto$time), mean)
-			HD.hist <- as.vector(apply(HD.hist, 2, function(x) na.approx(x, na.rm=F)))
+		HD.hist <- as.vector(HD.hist)
+		#	HD.hist <- as.vector(apply(HD.hist, 2, function(x) na.approx(x, na.rm=F)))
 		HD.size <- tapply(Size.phyto$size.dist, list(HD,Size.phyto$time), mean)
-			HD.size <- as.vector(apply(HD.size, 2, function(x) na.approx(x, na.rm=F)))
+		HD.size <- as.vector(HD.size)
+		#	HD.size <- as.vector(apply(HD.size, 2, function(x) na.approx(x, na.rm=F)))
 
 	    # para <- HD.hist; percentile <- cut(para, 100); plot3d(log(HD.volume), HD.time, HD.hist, col=jet.colors(100)[percentile], type='l', lwd=2, xlab="size class", ylab="time", zlab="Frequency")
 
@@ -147,12 +152,12 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 		N_dist <- t(tapply(Size.volume$HD.size, list(h,Size.volume$HD.volume), mean))
 		
 	        ### NA interpolation
-	        Vhists <- try(t(apply(Vhists, 1, function(x) na.approx(x, na.rm=F))))
-	        N_dist <- try(t(apply(N_dist, 1, function(x) na.approx(x, na.rm=F))))
+	        # Vhists <- try(t(apply(Vhists, 1, function(x) na.approx(x, na.rm=F))))
+	        # N_dist <- try(t(apply(N_dist, 1, function(x) na.approx(x, na.rm=F))))
 	     	
-	     	id <- findInterval(h.time, na.approx(time, na.rm=F))
+	     	# id <- findInterval(h.time, na.approx(time, na.rm=F))
 
-	     	colnames(Vhists) <- colnames(N_dist) <- h.time[id]
+	     	colnames(Vhists) <- colnames(N_dist) <- time
 	    
 	    # para <- Vhists; percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , Vhists , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
 	    
@@ -160,6 +165,8 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	    distribution <- list()
 	    distribution[[1]] <- Vhists
 	    distribution[[2]] <- N_dist
+	    # para <- distribution[[1]]; percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , Vhists , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
+
 		
-	    save(distribution, file=paste(home,cruise,"/", phyto,"_dist_Ncat",m,"_",cruise,sep=""))
-	    print(paste("saving ", home,cruise,"/", phyto,"_dist_Ncat",m,"_",cruise,sep=""))
+	    save(distribution, file=paste(home,"/",phyto,"_dist_Ncat",m,"_",cruise,sep=""))
+	    print(paste("saving ", home,"/",phyto,"_dist_Ncat",m,"_",cruise,sep=""))

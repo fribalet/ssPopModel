@@ -1,8 +1,9 @@
 #[gwennm@bloom DeepDOM/Cell_Division]
 ##Run this script using the commented out code just below (paste directly into the command line), should be in the directory listed above
-# Rscript ~/DeepDOM/scripts/Cruise_Size_distribution_sqlite_GMH.R d1 d2 prochloro DeepDOM | qsub -lwalltime=00:30:00,nodes=1:ppn=1 -N DeepDOM -d.
+# Rscript ~/DeepDOM/ssPopModel/Cruise_Size_distribution.R 1 40 prochloro DeepDOM 
 
-#note edit line above according to changes to script: make day input an integer number range (ie: 1,2 for 1:2). check with Chris to make sure the script above will work... esp. wall time
+
+#Note: this code requires popcycle package, and a flag file called "flag_file.txt" in the same directory as the db.location. It produces a plot of beads across the cruise with a smoothed spline fit to estimate the ave value of the parameter (fsc_small). It also produces a .csv file for each day containing the distributions of fsc_small for the phyto called for each 3-min file.
 
 
 #allowing arguments to be input from the command line input commented out above
@@ -12,6 +13,7 @@ d2 <- as.numeric(args[2]) #2nd argument, day number to end
 phyto <- as.character(args[3]) # 2nd arg phyto to calc size dist
 cruise <- as.character(args[4]) # 3rd arg cruise name
 
+
 library(popcycle)
 library(stats)
 
@@ -19,32 +21,34 @@ library(stats)
 ### BATCH FILE inputs ###
 #########################
 #globals necessary for running on bloom
-# home <- '~/DeepDOM/Cell_Division/'
-# folder <- NULL
-# root <- "/misc/seaflow/"
+home <- '~/DeepDOM/Cell_Division/' #change to take from input, so not hardcoded in
+folder <- NULL
+root <- "/misc/seaflow/"
+db.location <- "~/popcycle" #change to make variable?
 
 #globals necessary for running on local machine connected to bloom
-home <- "/Users/gwen/Desktop/Cruises/DeepDOM_2013/seaflow/"
-folder <- "Cell_Division/"
-root <- "/Volumes/seaflow/"
-cruise <- "DeepDOM"
-phyto <- 'prochloro'
-d1 <- 1 #start day
-d2 <- 1 # end day
+# home <- "/Users/gwen/Desktop/Cruises/DeepDOM_2013/seaflow/"
+# folder <- "Cell_Division/"
+# root <- "/Volumes/seaflow/"
+# db.location <- "/Volumes/gwennm/popcycle"
+# d1 <- 1 #start day
+# d2 <- 2 # end day
+# phyto <- 'prochloro'
+# cruise <- "DeepDOM"
 
 #Globals necessary for popcycle commands: consider making an input variable to the script
 set.evt.location(paste(root, cruise, sep=""))
-set.project.location("/Volumes/gwennm/popcycle")
+set.project.location(db.location)
 set.cruise.id("march2013")
 
 #parameters for making smoothed distributions
 para <- "fsc_small"
 n.breaks <- 2^10 # 1024
-concat <- 4 # 3-minute file x 4 = 12 min chunks
+#concat <- 4 # note this does not work here, make as an option later?
 out <- NULL
 
 
-#write a new function to query sqlite database by parameter and population
+# new function to query sqlite database by parameter and population and file.name
 get.param.by.pop <- function(file.name, para, phyto, db= db.name){
 	#this sqlite query will return a table with columns: file, param, pop (only phyto)
 	sql <- paste0("SELECT opp.file, opp.", para, ", vct.pop
@@ -62,14 +66,6 @@ get.param.by.pop <- function(file.name, para, phyto, db= db.name){
 	return(opp.slice)
 }
 
-#new function to retrieve opp.evt.table from sqlite database, suggest adding to popcycle
-get.opp.evt.ratio.table <- function(db=db.name){
-	sql <- paste0("SELECT * FROM ", opp.evt.ratio.table.name)
-	con <- dbConnect(SQLite(), dbname= db)
-	table <- dbGetQuery(con, sql)
-	dbDisconnect(con)
-	return (table)
-}
 
 
 ###########################
@@ -90,14 +86,13 @@ all.pop <- subset(all.stat, pop == phyto)
 all.files <- all.pop$file
 julian.day <- unique(basename(dirname(all.files)))
 
-#load opp.evt.ratios to correct for true cell density, so far not necessary because I use abundance from stats table
-#oer <- get.opp.evt.ratio.table()
 
 
 		########################
 		### INSTRUMENT DRIFT ###
 		########################
 		#need this code to normalize to beads fsc_small across the whole cruise
+		#this also plots the bead distribution for the whole cruise with smoothed spline
 		
 		spar <- 0.45
 		beads <- subset(all.stat, pop == "beads" & fsc_small < 60000)
@@ -128,8 +123,7 @@ for(n in d1:d2){
 	size.class <- NULL
 
 	for(file in filenames){
-	#still need to figure out how to implement concat to put together 12 min chunks
-	#do we need to concat at this step? or can it wait until the model?
+		#select parameter for phytoplankton from each file
 		slice <- get.param.by.pop(file, para, phyto)
 		
 		#find smoothed beads from same time stamp to normalize param of interest
@@ -141,12 +135,11 @@ for(n in d1:d2){
 			print("no beads found")
 		}
 		
-		#insert total abundance of this pop from the correct file, ** is this correct??
-		ntot <- stat[which(stat$file == file), "abundance"]
+		#insert ntot from 1/opp_evt_ratio * n_count from stats
+		ntot <- 1/stat[which(stat$file == file), "opp_evt_ratio"] * stat[which(stat$file == file), "n_count"]
 		time.class <- rep(time, n.breaks) #make vector of time to go with dist
 		
-		#Note changed the start range of density from 1 to 0 for smaller pro
-		#shouldn't this range be dependent on the phyto we are trying to model? maybe this should be a range determined by the max of the slice
+		#shouldn't this range be dependent on the phyto we are trying to model?
 		#could add an if statement, if phyto = prochloro then this range for dens
 		dens <- density(log10(slice[,para]), n=n.breaks,from=0, to=3.5, bw="SJ", kernel='gaussian',na.rm=T)
 		freq.dist <- dens$y*diff(dens$x)[1]

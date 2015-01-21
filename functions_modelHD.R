@@ -94,13 +94,14 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, a, b, E_star){
 			
 					
 			for(hr in 1:24){
-					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), a=as.numeric(params[3]),b=as.numeric(params[4]), E_star=as.numeric(params[5]))	
+					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), a=as.numeric(params[3]),b=as.numeric(params[4]), E_star=as.numeric(params[5]))
+						
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution 
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
 					sigma[,hr] <- (round(N.dist[, hr+1] - TotN[hr+1]*wt.norm)^2) #observed value - fitted value
 					#sigma[,hr] <- abs(V.hists[, hr+1] - wt.norm) #observed value - fitted value
 					}
-			sigma <- colSums(sigma)/colSums(N.dist[,-1])
+			sigma <- colSums(sigma)/colSums(na.omit(N.dist[,-1]))
 			sigma <- sum(sigma, na.rm=T)
 			return(sigma)
 
@@ -121,7 +122,8 @@ determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		dt <- 1/(resol/10)	
 			
 		# dt <- 1/6; breaks <- 25 ## MATLAB
-		TotN <- matrix(colSums(N.dist), ncol=breaks)
+		
+		TotN <- matrix(colSums(na.omit(N.dist)), ncol=breaks)
 		ti <- seq(min(Edata[,1],na.rm=T),max(Edata[,1],na.rm=T), length.out=breaks/dt)
 		ep <- data.frame(spline(Edata[,1], Edata[,2], xout=ti)) #interpolate E data according to dt resolution
 		Einterp <- ep$y
