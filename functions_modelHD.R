@@ -21,8 +21,9 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 		## GAMMA FUNCTION ## fraction of cells that grow into next size class between t and t + dt
 		#################### 
 		
-		y <- gmax*(Einterp/E_star) # NEW VERSION
-		y[which(y > gmax)] <- gmax # in the case where Einterp > E_star
+		y <- rep(gmax, length(Einterp)) # NEW VERSION
+		ind <- which(Einterp < E_star)
+		y[ind] <- (gmax/E_star) * Einterp[ind] # in the case where Einterp > E_star
 		
 		# y <- gmax*(1-exp(-Einterp/(E_star*gmax))) #OLD VERSION
 
@@ -32,8 +33,8 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 		#################### 
 		# del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) #OLD VERSION
 
-		del <- dmax * volbins^b / (1 + volbins^b) # NEW VERSION
-		del[1:(j-1)] <- 0		
+		del <- dmax * volbins^b / (1 + (volbins^b)) # NEW VERSION
+		# del[1:(j-1)] <- 0		
 				# if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
 					# }else{delta <- matrix(del, 1, m)}
 		delta <- matrix(del, 1, m)
@@ -46,23 +47,22 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 		################################
 		## CONSTRUCTION SPARSE MATRIX ##
 		################################
-		stasis_ind <- seq(m+2,m^2-1,by=m+1) # Diagonal stasis (0)
-		growth_ind <- seq(2,(m-1)^2,by=m+1) # Subdiagonal growth (-1)
+		stasis_ind <- seq(1,m^2-1,by=m+1) # Diagonal stasis (0)
+		growth_ind <- seq(2,m^2,by=m+1) # Subdiagonal growth (-1)
 		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) # Superdiagonal division (j-1)
 		
 		for(t in 1:(1/dt)){
 			A <- matrix(data=0,nrow=m, ncol=m)
 			
 			# Cell growth (subdiagonal region of the matrix)
-			A[growth_ind] <- y[t+hr/dt]*(1-delta[1:(m-2)])	
+			A[growth_ind] <- y[t+hr/dt]*(1-delta[1:(m-1)])	
 
 			# Division (first row and superdiagonal j-1)
-			A[1,2:(j-1)] <- 2 * delta[2:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
+			A[1,1:(j-1)] <- A[1,1:(j-1)]  + 2* delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
 			A[div_ind] <- 2 * delta[j:m] # The cell division terms for large (i > = j) phytoplankton
 		
 			# Stasis (main diagonal)
-			A[stasis_ind] <- (1-delta[2:(m-1)])*(1-y[t+hr/dt])	# the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
-			A[1,1] <- (1-delta[1])*(1-y[t+hr/dt]) + 2 * delta[1]
+			A[stasis_ind] <- (1-delta)*(1-y[t+hr/dt])	# the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
 			A[m,m] <- 1-delta[m]
 
 
@@ -139,7 +139,7 @@ determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		
 		f <- function(params) sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, TotN=TotN, volbins=volbins)
 			
-		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1), upper=c(1,1,15,2000), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100))
+		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1), upper=c(1,1,15,max(Einterp)), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100))
 		
 		params <- opt$optim$bestmem
 		gmax <- params[1]
@@ -174,7 +174,7 @@ determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		d.mu_N <- sum(mu_N, na.rm=T)
 		print(paste("daily growth rate=",round(d.mu_N,2)))
 			
-		modelresults <- data.frame(cbind(gmax,dmax,a,b,E_star,resnorm), row.names=NULL)
+		modelresults <- data.frame(cbind(gmax,dmax,b,E_star,resnorm), row.names=NULL)
 		
 		modelproj <- list(modelresults, mu_N, Vproj, Nproj)
 		names(modelproj) <- c("modelresults", "mu_N","Vproj","Nproj")
