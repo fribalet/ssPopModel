@@ -46,7 +46,7 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 		################################
 		## CONSTRUCTION SPARSE MATRIX ##
 		################################
-		stasis_ind <- seq(m+2,m^2-1,by=m+1) # Diagonal stasis (0)
+		stasis_ind <- seq(m+2,m^2,by=m+1) # Diagonal stasis (0)
 		growth_ind <- seq(2,(m-1)^2,by=m+1) # Subdiagonal growth (-1)
 		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) # Superdiagonal division (j-1)
 		
@@ -61,7 +61,7 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 			A[div_ind] <- 2 * delta[j:m] # The cell division terms for large (i > = j) phytoplankton
 		
 			# Stasis (main diagonal)
-			A[stasis_ind] <- (1-delta[2:(m-1)])*(1-y[t+hr/dt])	# the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
+			A[stasis_ind] <- (1-delta)*(1-y[t+hr/dt])	# the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
 			A[1,1] <- (1-delta[1])*(1-y[t+hr/dt]) + 2 * delta[1]
 			A[m,m] <- 1-delta[m]
 
