@@ -152,7 +152,7 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	     	
 	     	id <- findInterval(h.time, na.approx(time, na.rm=F))
 
-	     	colnames(Vhists) <- colnames(N_dist) <- h.time[id]
+	     	colnames(Vhists) <- colnames(N_dist) <- round(h.time[id])
 	    
 	    # para <- Vhists; percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , Vhists , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
 	    
