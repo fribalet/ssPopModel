@@ -1,14 +1,5 @@
 # [ribalet@bloom Cell_Division]
 # for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i synecho Thompson_4" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N synGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i prochloro Thompson_4" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N proGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i synecho MBARI_1" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N synGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i pico MBARI_1" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N proGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i synecho Thompson_10" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N synGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i crypto Crypto_TimeCourse_June2013" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N cryptoGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i crypto Rhodomonas_Feb2014" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N cryptoGR$i -d.; done
-# for i in $(seq 0 1 24); do echo "Rscript Model_HD_Division_Rate.R $i prochloro Med4_TimeCourse_July2012" | qsub -lwalltime=24:00:00,nodes=1:ppn=1 -N proGR$i -d.; done
-
-
 
 #  library(rgl)
 library(DEoptim)
@@ -76,6 +67,7 @@ m <- 2^6 # number of size class
 
 	volbins <- as.numeric(row.names(Vhists))
 			sizebins <- 2*(volbins*3/(pi*4))^(1/3)# to check the actual diameter
+	volbins <- volbins/max(volbins) # to make sure values are never > 1, for compatibility issue with the Delta function
 
 	time.numc <- as.numeric(colnames(Vhists))	
 	time <- as.POSIXct(time.numc, origin="1970-01-01" ,tz="GMT")	
@@ -93,6 +85,8 @@ m <- 2^6 # number of size class
 	breaks <- 25*60/resol
 
 	model <- array(NA, dim=c(4,1))
+
+# t <- 1
 
 	for(i in seq(1,length(time)-24, 24)){
 		print(paste("starting hour:",i+t))

@@ -33,7 +33,7 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 		#################### 
 		# del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) #OLD VERSION
 
-		del <- dmax * volbins^b / (1 + (volbins^b)) # NEW VERSION
+		del <- dmax * (volbins/max(volbins))^b / (1 + ((volbins/max(volbins))^b)) # NEW VERSION
 		# del[1:(j-1)] <- 0		
 				# if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
 					# }else{delta <- matrix(del, 1, m)}
@@ -97,9 +97,13 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 				dim <- dim(N.dist)
 				sigma <- matrix(NA, dim[1], dim[2]-1) # preallocate sigma
 			
+			# fiind which hourly time point is missing
+				start <- as.numeric(colnames(V.hists))[1]
+				id <- match(as.numeric(colnames(V.hists)) , seq(start, start+60*60*24, 60*60))
+				id <- id[which(id<25)]
 					
-			for(hr in 1:24){
-					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]))	
+			for(hr in 1:(dim[2]-1)){
+					B <- matrix.conct.fast(hr=id[hr]-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]))	
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution 
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
 					sigma[,hr] <- (round(N.dist[, hr+1] - TotN[hr+1]*wt.norm)^2) #observed value - fitted value
@@ -126,7 +130,7 @@ determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		dt <- 1/(resol/10)	
 			
 		# dt <- 1/6; breaks <- 25 ## MATLAB
-		TotN <- matrix(colSums(N.dist), ncol=breaks)
+		TotN <- as.matrix(colSums(N.dist))
 		ti <- seq(min(Edata[,1],na.rm=T),max(Edata[,1],na.rm=T), length.out=breaks/dt)
 		ep <- data.frame(spline(Edata[,1], Edata[,2], xout=ti)) #interpolate E data according to dt resolution
 		Einterp <- ep$y
@@ -157,22 +161,26 @@ determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		Vproj <- V.hists
 		Nproj <- N.dist
 		mu_N <- matrix(nrow=1,ncol=dim(V.hists)[2])
+			
+			# fiind which hourly time point is missing
+			start <- as.numeric(colnames(Vproj ))[1]
+			id <- match(as.numeric(colnames(Vproj)) , seq(start, start+60*60*24, 60*60))
+			id <- id[which(id<25)]
 
-			for(hr in 1:24){
-					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, b=b, E_star=E_star,dmax=dmax)
+		for(hr in 1:(dim[2]-1)){
+					B <- matrix.conct.fast(hr=id[hr]-1, Einterp=Einterp, volbins=volbins, gmax=gmax, b=b, E_star=E_star,dmax=dmax)
 					Nproj[,hr+1] <- round(B %*% Nproj[,hr]) # calculate numbers of individuals
 					Vproj[,hr+1] <- B %*% Vproj[,hr] # calculate the projected size-frequency distribution
 					Vproj[,hr+1] <- Vproj[,hr+1]/sum(Vproj[,hr+1]) # normalize distribution
-					mu_N[,hr+1] <- log(sum(Nproj[,hr+1])/sum(Nproj[,hr]))
-				
-				}
-
+					mu_N[,hr+1] <- log(sum(Nproj[,hr+1])/sum(Nproj[,hr]))/
+									((as.numeric(colnames(Nproj)[hr+1])-as.numeric(colnames(Nproj)[hr]))/3600)
+						}
 		colnames(mu_N) <- colnames(Nproj)
 		
 		##############################
 		## Growth rate calculation ##
 		##############################
-		d.mu_N <- sum(mu_N, na.rm=T)
+		d.mu_N <- 24*mean(mu_N, na.rm=T)
 		print(paste("daily growth rate=",round(d.mu_N,2)))
 			
 		modelresults <- data.frame(cbind(gmax,dmax,b,E_star,resnorm), row.names=NULL)
