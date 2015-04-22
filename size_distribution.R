@@ -20,8 +20,8 @@ time.range <- range(phyto.stat$time)
 time <- seq(time.range[1],time.range[2] , by=60*time.interval) # cut the time series according to time interval
 
 # Get the range of 'para' for 'phyto' 
-para.phyto <- get.opp.by.date(time.range[1], time.range[2], pop=phyto, channel=para)[,para]
-para.range <- range(para.phyto)
+para.phyto <- get.opp.by.date(time.range[1], time.range[2], pop=phyto, channel=para)
+para.range <- range(para.phyto[,para])
 
 
 #########################
@@ -77,7 +77,7 @@ for( t in time){
         Ndist <- data.frame(cbind(Ndist, size.dist))
         Time <- c(Time, t)
 
-       } 
+} 
 
 #################################################################
 ### CONVERT normalized forward SCATTER by 1 micron beads to VOLUME ###
