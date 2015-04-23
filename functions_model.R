@@ -161,7 +161,8 @@ determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		Vproj <- V.hists
 		Nproj <- N.dist
 		mu_N <- matrix(nrow=1,ncol=dim(V.hists)[2])
-			
+		dim <- dim(Nproj)
+	
 			# fiind which hourly time point is missing
 			start <- as.numeric(colnames(Vproj ))[1]
 			id <- match(as.numeric(colnames(Vproj)) , seq(start, start+60*60*24, 60*60))

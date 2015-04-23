@@ -87,9 +87,6 @@ time.interval <- 60*60*24 #  number of minutes in 1 day
 	Par.path <- paste(home, folder,cruise,"/Par_",cruise,sep="")
 	Par <- read.csv(Par.path, sep=",")
 	Par$time <- as.POSIXct(Par$time, tz="GMT")
-	Par$num.time <- as.numeric(Par$time)
-
-
 
 
 	##########################
@@ -107,7 +104,7 @@ time.interval <- 60*60*24 #  number of minutes in 1 day
 		#i <- 96
 		start <- i+t*60*60
 		end <- start  + 60*60*24
-		print(paste("calculating growth projection from ",start , "to",end))
+		print(paste("calculating 24-h growth projection from ",start ))
 	
 	#plot(Par$time, Par$par, type='o'); points(c(start, end),c(0,0), col='red',pch=16, cex=2)
 
@@ -129,17 +126,11 @@ time.interval <- 60*60*24 #  number of minutes in 1 day
 	    # plot3d(log2(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , unlist(para), col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
 
 
-		### SELECT PAR corresponding to each sample
-		light <- subset(Par, num.time > start & num.time < end)
-		h <- cut(light$num.time, breaks=breaks)
-		h.par <- tapply(light$par, h, mean)
-		t.Edata <- matrix(cbind(time[c(i:(i+24)+t)], h.par), ncol=2)
-        
-	        ### NA interpolation
-	        Edata <- apply(t.Edata, 2, function(x) na.approx(x, na.rm=F))
-
+	### SELECT PAR corresponding to each sample
+		interp.par.mean <- approx(Par[,"time"], Par[,"par"], xout=time[start.i:end.i], ties=mean)
+		Edata <- matrix(cbind(interp.par.mean$x, interp.par.mean$y), ncol=2)
 		
-		### RUN size.class.model_functions
+	### RUN size.class.model_functions
 		proj <- try(determine.opt.para(V.hists=V.hists,N.dist=N.dist,Edata=Edata,volbins=volbins))
 		
 		#para <- proj$Vproj; percentile <- cut(unlist(para), 100); plot3d(log(rep(volbins, 24)), rep(1:ncol(para), each=nrow(para)), z=matrix(para), col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")

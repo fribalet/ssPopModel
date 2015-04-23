@@ -125,13 +125,13 @@ percentile <- cut(unlist(para), 100)
 plot3d(rep(as.numeric(row.names(para)), dim(para)[2]), 
             rep(as.numeric(colnames(para)), each=dim(para)[1]) , 
             unlist(para), 
-            col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
+            col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
 
 # in log scale
 plot3d(log2(rep(as.numeric(row.names(para)), dim(para)[2])), 
             rep(as.numeric(colnames(para)), each=dim(para)[1]) , 
             unlist(para), 
-            col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
+            col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
 
 
 
