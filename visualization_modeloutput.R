@@ -1,23 +1,26 @@
 ## MODEL
 cruise <- "Thompson_9"
-location.model <- "/Volumes/ribalet/Cell_Division/"
+model.output <- "/Volumes/ribalet/Cell_Division/"
 phyto <- 'prochloro'
-cat <- 64 # number of size bin
+cat <- 57# number of size bin
 
 
-all.filelist <- list.files(paste(location.model,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""))
+all.filelist <- list.files(paste(model.output,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""))
 filelist <- all.filelist[grep(pattern=paste(phyto), all.filelist)]
 
 n <- c <- 1
-Conc.all <- N.proj.all <- V.hist.all <- div.rate <- para.all <- Col <- NULL
+Conc.all <-  div.rate <- para.all <- Col <- NULL
+N.proj.all <- V.hist.all  <- matrix(nrow=cat)
 
 for(file in filelist){
     #file <- filelist[11]
-    load(paste(location.model ,cruise,file, sep="/"))
+    load(paste(model.output,cruise,file, sep="/"))
     print(file)
     print(n)
-        dim <- conc.proj.all <- n.proj.all <- v.hist.all <- dr.all <- p.all <- NULL
-            for(i in seq(2,as.numeric(n.day),by=1)){
+        n.proj.all <- v.hist.all  <- matrix(nrow=cat)
+        conc.proj.all <- dr.all <- p.all <- NULL
+
+            for(i in seq(2,dim(model)[2],by=1)){
                 n.proj <- model[4,i][[1]]
                 n.proj.all <- cbind(n.proj.all, n.proj)         
                             
@@ -55,7 +58,6 @@ for(file in filelist){
             legend("topleft",legend=leg, col=1:c, ncol=length(leg), pch=1)
         plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)
         plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)
-        plot(para.all[,"time"], para.all[,"a"],ylab="a", xlab="time",col = Col)
         plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)
         plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)
         plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)
@@ -79,5 +81,5 @@ c <- c + 1
         
   ### VISUALIZATION      
     para <- Vproj
-    percentile <- cut(unlist(para), 100); plot3d(rep(1:dim(para)[1], dim(para)[2]), rep(1:dim(para)[2], each=dim(para)[1]), z=matrix(para), col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
+    percentile <- cut(unlist(para), 100); plot3d(rep(1:dim(para)[1], dim(para)[2]), rep(1:dim(para)[2], each=dim(para)[1]), z=as.matrix(para), col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
 

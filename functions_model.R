@@ -13,7 +13,7 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 		########################
 		nodiv <- 0 # # no division during the first X hours after dawn 
 		t.nodiv <- nodiv * (ncol(N_dist)-1)/24 
-		dt <- (resol/10)^-1 
+		dt <- resol/60
 		j <- findInterval(2 * volbins[1], volbins)
 		m <- length(volbins) ## dimensions of the squared matrix
 
@@ -21,11 +21,10 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 		## GAMMA FUNCTION ## fraction of cells that grow into next size class between t and t + dt
 		#################### 
 		
-		y <- rep(gmax, length(Einterp)) # NEW VERSION
-		ind <- which(Einterp < E_star)
-		y[ind] <- (gmax/E_star) * Einterp[ind] # in the case where Einterp > E_star
+		y <- gmax * (Einterp/E_star) # NEW VERSION
+		y[which(Einterp > E_star)] <- gmax
 		
-		# y <- gmax*(1-exp(-Einterp/(E_star*gmax))) #OLD VERSION
+		# y <- gmax*(1-exp(-Einterp/(E_star))) # SOSIK 2003
 
 		
 		####################		
@@ -34,6 +33,7 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 		# del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) #OLD VERSION
 
 		del <- dmax * (volbins/max(volbins))^b / (1 + ((volbins/max(volbins))^b)) # NEW VERSION
+				# NOTE: volbins/max(volbins) # to make sure values are never > 1, for compatibility issue with the Delta function
 		# del[1:(j-1)] <- 0		
 				# if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
 					# }else{delta <- matrix(del, 1, m)}
@@ -56,7 +56,6 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 			
 			# Cell growth (subdiagonal region of the matrix)
 			A[growth_ind] <- y[t+hr/dt]*(1-delta[1:(m-1)])	
-
 			# Division (first row and superdiagonal j-1)
 			A[1,1:(j-1)] <- A[1,1:(j-1)]  + 2* delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
 			A[div_ind] <- 2 * delta[j:m] # The cell division terms for large (i > = j) phytoplankton
@@ -89,27 +88,25 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 		# E_star <- 124
 		# dmax <- 0.03
 		# params <- data.frame(cbind(gmax, dmax, a, b, E_star))
-		# params <- as.numeric(proj$modelresults)
+		# # params <- as.numeric(proj$modelresults)
 
 	
 
 	sigma.lsq <- function(params, Einterp, N.dist, V.hists, TotN, volbins){
+				
+				res <- which(diff(as.numeric(colnames(V.hists))) == 60*time.interval) # select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
 				dim <- dim(N.dist)
-				sigma <- matrix(NA, dim[1], dim[2]-1) # preallocate sigma
+				sigma <- matrix(NA, dim[1], dim[2]) # preallocate sigma
 			
-			# fiind which hourly time point is missing
-				start <- as.numeric(colnames(V.hists))[1]
-				id <- match(as.numeric(colnames(V.hists)) , seq(start, start+60*60*24, 60*60))
-				id <- id[which(id<25)]
-					
-			for(hr in 1:(dim[2]-1)){
-					B <- matrix.conct.fast(hr=id[hr]-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]))	
+			for(hr in res){
+					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]))	
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution 
+					
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
 					sigma[,hr] <- (round(N.dist[, hr+1] - TotN[hr+1]*wt.norm)^2) #observed value - fitted value
 					#sigma[,hr] <- abs(V.hists[, hr+1] - wt.norm) #observed value - fitted value
 					}
-			sigma <- colSums(sigma)/colSums(N.dist[,-1])
+			sigma <- colSums(sigma)/sum(N.dist)
 			sigma <- sum(sigma, na.rm=T)
 			return(sigma)
 
@@ -127,12 +124,20 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 	
 determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		
-		dt <- 1/(resol/10)	
+		dt <- resol/60
 			
 		# dt <- 1/6; breaks <- 25 ## MATLAB
 		TotN <- as.matrix(colSums(N.dist))
-		ti <- seq(min(Edata[,1],na.rm=T),max(Edata[,1],na.rm=T), length.out=breaks/dt)
-		ep <- data.frame(spline(Edata[,1], Edata[,2], xout=ti)) #interpolate E data according to dt resolution
+		ti <- as.numeric(colnames(V.hists))
+
+		# create Light data with 'dt' time interval.
+			seq <- NULL
+			for(i in 1:(length(ti)-1)){
+				s <- seq(ti[i], ti[i+1], length.out=1/dt)
+				seq <- c(seq, s)
+			}
+
+		ep <- data.frame(spline(Edata[,1], Edata[,2], xout=seq)) #interpolate E data according to dt resolution
 		Einterp <- ep$y
 		Einterp[Einterp < 0] <- 0
 		
@@ -157,25 +162,21 @@ determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		## Calculate projections from best fit parameters ##	
 		####################################################
 		print(params)
-
+		
+		res <- which(diff(as.numeric(colnames(V.hists))) == 60*time.interval) # select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
 		Vproj <- V.hists
 		Nproj <- N.dist
 		mu_N <- matrix(nrow=1,ncol=dim(V.hists)[2])
-		dim <- dim(Nproj)
-	
-			# fiind which hourly time point is missing
-			start <- as.numeric(colnames(Vproj ))[1]
-			id <- match(as.numeric(colnames(Vproj)) , seq(start, start+60*60*24, 60*60))
-			id <- id[which(id<25)]
 
-		for(hr in 1:(dim[2]-1)){
-					B <- matrix.conct.fast(hr=id[hr]-1, Einterp=Einterp, volbins=volbins, gmax=gmax, b=b, E_star=E_star,dmax=dmax)
+		for(hr in res){
+					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, b=b, E_star=E_star,dmax=dmax)
 					Nproj[,hr+1] <- round(B %*% Nproj[,hr]) # calculate numbers of individuals
 					Vproj[,hr+1] <- B %*% Vproj[,hr] # calculate the projected size-frequency distribution
 					Vproj[,hr+1] <- Vproj[,hr+1]/sum(Vproj[,hr+1]) # normalize distribution
 					mu_N[,hr+1] <- log(sum(Nproj[,hr+1])/sum(Nproj[,hr]))/
-									((as.numeric(colnames(Nproj)[hr+1])-as.numeric(colnames(Nproj)[hr]))/3600)
+								((as.numeric(colnames(Nproj)[hr+1])-as.numeric(colnames(Nproj)[hr]))/(60*time.interval))
 						}
+
 		colnames(mu_N) <- colnames(Nproj)
 		
 		##############################
