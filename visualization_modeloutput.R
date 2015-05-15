@@ -1,5 +1,5 @@
 ## MODEL
-cruise <- "Thompson_9"
+cruise <- "DeepDOM"
 model.output <- "/Volumes/ribalet/Cell_Division/"
 phyto <- 'prochloro'
 cat <- 57# number of size bin

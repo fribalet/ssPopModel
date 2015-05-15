@@ -1,6 +1,6 @@
 library(popcycle)
 
-cruise <- "SCOPE_2"
+cruise <- "SCOPE_1"
 home <- "~/Desktop"
 set.project.location(paste0("/Volumes/seaflow/", cruise))
 phyto <- "prochloro"
@@ -29,10 +29,10 @@ para.range <- range(para.phyto[,para])
 #########################
 
 # Get the beads data
-m.beads <- median(subset(stat, pop =='beads' | time > time.range[1] & time < time.range[2])[,para])
+m.beads <- median(subset(stat, pop =='beads' & time > time.range[1] & time < time.range[2])[,para])
 # Plot the light scattering of beads over time
-plot.time(stat, popname='beads',param='fsc_small')
-
+plot.time(stat, popname='beads',param='fsc_small', ylim=c(1, 10^3.5))
+abline(h=m.beads, col=2, lwd=3)
 # # BInned data according to 'time'interval'
 # beads <- subset(df, pop=='beads')
 # time.binned <- cut(beads$time, time, labels=F)
@@ -50,16 +50,18 @@ plot.time(stat, popname='beads',param='fsc_small')
 ###############################################################
 ### Generate SIZE distribution, binned into 'n.breaks' for each time interval ###
 ###############################################################
-
+ i <- 0
 Vhist <- Ndist  <- Time <- NULL
 for( t in time){
 
+     message(round(100*i/length(time)), "% completed \r", appendLF=FALSE)
+  
+    tryCatch({
     #get the opp for phyto
-    t <- as.POSIXct(t, origin="1970-01-01", tz='GMT'); print(paste(t))
+    t <- as.POSIXct(t, origin="1970-01-01", tz='GMT')
     pop <- try(get.opp.by.date(t, t+60*time.interval, pop=phyto, channel=para))
 
     if(class(pop) == "try-error" | nrow(pop) < 10){
-        print("not enough opp, skipping hour")
         next
         }
 
@@ -77,7 +79,11 @@ for( t in time){
         Ndist <- data.frame(cbind(Ndist, size.dist))
         Time <- c(Time, t)
 
-} 
+    } , error = function(e) {print(paste("Encountered error at ", t))})
+    i <-  i + 1
+    flush.console()
+}
+
 
 #################################################################
 ### CONVERT normalized forward SCATTER by 1 micron beads to VOLUME ###
@@ -112,6 +118,24 @@ print(paste("saving ", home,"/",phyto,"_dist_Ncat",n.breaks,"_",cruise,sep=""))
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #########################
 ### SHOW size distribution ###
 #########################
@@ -126,6 +150,7 @@ plot3d(rep(as.numeric(row.names(para)), dim(para)[2]),
             rep(as.numeric(colnames(para)), each=dim(para)[1]) , 
             unlist(para), 
             col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
+
 
 # in log scale
 plot3d(log2(rep(as.numeric(row.names(para)), dim(para)[2])), 

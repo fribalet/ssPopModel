@@ -83,20 +83,20 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 # This function calculates the sum of squares of the of the differences between the hourly observations and the model given the specified parameters
 # This function returns a column vector - called by "determine.opt.para" for the optimization.
 		# gmax <- 0.14
-		# a <-1.23
+		# # a <-1.23
 		# b <- 3.77
 		# E_star <- 124
 		# dmax <- 0.03
-		# params <- data.frame(cbind(gmax, dmax, a, b, E_star))
+		# params <- data.frame(cbind(gmax, dmax, b, E_star))
 		# # params <- as.numeric(proj$modelresults)
 
 	
 
 	sigma.lsq <- function(params, Einterp, N.dist, V.hists, TotN, volbins){
 				
-				res <- which(diff(as.numeric(colnames(V.hists))) == 60*time.interval) # select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
+				res <- which(diff(as.numeric(colnames(V.hists))) == 60*time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
 				dim <- dim(N.dist)
-				sigma <- matrix(NA, dim[1], dim[2]) # preallocate sigma
+				sigma <- matrix(NA, dim[1], dim[2]-1) # preallocate sigma
 			
 			for(hr in res){
 					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]))	

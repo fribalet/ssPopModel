@@ -5,11 +5,12 @@
 library(DEoptim)
 library(zoo)
 
-#home <- "/Volumes/ribalet/Cell_division/"; cruise <- "Crypto_TimeCourse_June2013"
+home <- "/Volumes/ribalet/Cell_division/"; cruise <- "DeepDOM"
+code <- '~/Documents/DATA/Codes/ssPopModel/'
+t <- 0
+phyto <- 'prochloro'
 
-home <- '~/Cell_Division/'
-
-source(paste(home,'functions_modelHD.R',sep=""), chdir = TRUE)
+source(paste(code,'functions_model.R',sep=""), chdir = TRUE)
 
 jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow",	"#FF7F00", "red", "#7F0000"))
 
@@ -59,7 +60,7 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 
 	print(paste("Number of days in the dataset:",length(days)))
 
-	# para <- Vhists; percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , para , col=jet.colors(100)[percentile], type='l', lwd=6, xlab="size class", ylab="time", zlab="Frequency")
+	# para <- Vhists; percentile <- cut(unlist(para), 100); plot3d(log(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , as.matrix(para), col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
 	
 	
 	###################
@@ -78,7 +79,10 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	##########################
 
 model <- array(NA, dim=c(4,1))
-for(i in 1:length(days)){
+for(i in 8:length(days)){
+		
+		# i <- 14
+
 		print(paste("24-h growth projection starting at day", i,":",days[i]))
 		
 		hours <- seq(days[i], days[i]+60*60*24, by=time.interval*60)
@@ -118,7 +122,7 @@ for(i in 1:length(days)){
 		
 		if(class(proj) !='try-error'){
 		model <- matrix(cbind(as.array(model), as.array(proj)), nrow=4,ncol=ncol(model)+1)
-	    save(model, file=paste(home,"/",cruise,"/",phyto,"_modelHD_growth_",cruise,"_Ncat",m,"_t",t, sep=""))
+	   # save(model, file=paste(home,"/",cruise,"/",phyto,"_modelHD_growth_",cruise,"_Ncat",m,"_t",t, sep=""))
 
 	  }else{print("error during optimization")}
 }
