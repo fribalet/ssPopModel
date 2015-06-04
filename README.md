@@ -5,7 +5,7 @@ ssPopModel is a R package that uses size-structured matrix population model to e
 
 Here is a quick tutorial to get you started (a more detailed tutorial is in progress).
 
-1. create a time series of hourly-binned size distribution of Prochlorococcus
+1. create a time series of hourly-binned size distribution of <i>Prochlorococcus</i>
  ```r
   library(ssPopModel)
   popcycle.location <- "/Volumes/seaflow/SCOPE_1" # location of the SeaFlow database
@@ -14,7 +14,7 @@ Here is a quick tutorial to get you started (a more detailed tutorial is in prog
   dist <- size.distribution(popcycle.location, popname, param="fsc_small", n.breaks=57, time.interval = 60)
  ```
 
- You can visualize the size distribution using the function 'plot.size.distribution'
+ You can visualize the size distribution using the function `plot.size.distribution`
  ```r
  dim <- 1 # choose 1 or 2 if you want to see the frequency or count for the size distribution, respectively
  mode <- "log" # choose "log" or "lin" if you want to plot in logarithmic or linear scale, respectively
