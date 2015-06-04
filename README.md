@@ -3,7 +3,7 @@ ssPopModel
 
 ssPopModel is a R package that uses size-structured matrix population model to estimate hourly division rates of microbial populations from SeaFlow data. These estimates are independent of variations in cell abundance and can be used to study physiologically-driven changes in population dynamics. The model is described in:
 
-Ribalet et al. Light-driven synchrony of <i>Prochlorococcus</i> cell growth and mortality in the subtropical Pacific gyre. `Proceedings of the National Academy of Sciences USA`, in press
+       Ribalet et al. Light-driven synchrony of <i>Prochlorococcus</i> cell growth and mortality in the subtropical Pacific gyre. `Proceedings of the National Academy of Sciences USA`, in press
 
 Here is a quick tutorial to get you started (a more detailed tutorial is in progress).
 
