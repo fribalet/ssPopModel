@@ -32,7 +32,3 @@ Here is a quick tutorial to get you started (a more detailed tutorial is in prog
 
  model <- run.ssPopModel(distribution, Par, time.delay) 
  ```
- 
-
- 
- ```
