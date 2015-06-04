@@ -124,6 +124,8 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 	
 determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		
+		require(DEoptim)
+
 		dt <- resol/60
 			
 		# dt <- 1/6; breaks <- 25 ## MATLAB

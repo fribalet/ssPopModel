@@ -5,10 +5,9 @@
 library(DEoptim)
 library(zoo)
 
-home <- "/Volumes/ribalet/Cell_division/"; cruise <- "DeepDOM"
+home <- "/Volumes/ribalet/Cell_division/"
+home <- '~/Documents/DATA/SeaFlow/SCOPE'
 code <- '~/Documents/DATA/Codes/ssPopModel/'
-t <- 0
-phyto <- 'prochloro'
 
 source(paste(code,'functions_model.R',sep=""), chdir = TRUE)
 
@@ -25,6 +24,9 @@ jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F"
 	phyto <- as.character(args[2])
 	cruise <- as.character(args[3])
 
+            t <- 0
+            phyto <- 'prochloro'
+            cruise <- "SCOPE_1"
 
 	m <- 57 # 2^6 # number of size class
 	time.interval <- 60 #  number of minutes

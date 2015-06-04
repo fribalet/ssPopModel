@@ -1,6 +1,5 @@
 import(popcycle);
 import(DEoptim);
 import(zoo);
-import(stats);
 import(rgl);
 exportPattern("^[^\\.]");
