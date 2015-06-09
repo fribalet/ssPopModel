@@ -1,0 +1,2473 @@
+model[4,i][[1]]#
+
+nrow(model[4,2][[1]])#
+#
+#
+#
+
+#
+    n <- c <- 1#
+    Conc.all <-  div.rate <- para.all <- Col <- NULL#
+    N.proj.all <- V.hist.all  <- NULL#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+        print(n)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- matrix(nrow=cat)#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+#
+                for(i in seq(2,dim(model)[2],by=1)){#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+            #
+        #
+            div.rate <- rbind(div.rate, dr.all)#
+            N.proj.all <- cbind(N.proj.all, n.proj.all)#
+            V.hist.all <- cbind(V.hist.all, v.hist.all)#
+            para.all <- rbind(para.all, p.all)#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            leg <- unlist(list(strsplit(filelist,"_t")))[seq(2,length(filelist[1:n])*2,2)]#
+#
+            if(plot.raw){#
+                    layout(matrix(c(1,1,2:7),4,2, byrow=T)) #
+                    par(pty='m')    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                        legend("topleft",legend=leg, col=1:c, ncol=length(leg), pch=1)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+            # # #
+            # names(para) <- c("gmax","a","b","E_star","dmax","resnorm")#
+            # par(mfrow=c(4,2))#
+            # barplot(d.GR, col='grey', main="GR")#
+            # for(i in 1:6) barplot(para[,i], main=colnames(para)[i])#
+    n <- n + 1  #
+    c <- c + 1#
+    }#
+
+   cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- matrix(nrow=cat)#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+
+   for(i in seq(2,dim(model)[2],by=1)){#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+            #
+
+div.rate <- rbind(div.rate, dr.all)#
+
+N.proj.all <- cbind(N.proj.all, n.proj.all)#
+
+N.proj.all <- V.hist.all  <- as.matrix()#
+
+N.proj.all <- V.hist.all  <- list()#
+
+N.proj.all <- cbind(N.proj.all, n.proj.all)#
+
+c(N.proj.all, n.proj.all)#
+
+?cbind#
+
+clasS(n.proj)#
+
+class(n.proj)#
+#
+
+cbind.data.frame(n.proj.all, n.proj)    #
+
+N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+
+?cbind.data.frame#
+
+dim(N.proj.all)#
+
+  require(plotrix)#
+#
+#
+    n <- c <- 1#
+    Conc.all <-  div.rate <- para.all <- Col <- NULL#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+        print(n)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- matrix(nrow=cat)#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+#
+                for(i in seq(2,dim(model)[2],by=1)){#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind.data.frame(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+            #
+            if(is.null(dim(N.proj.all)) N.proj.all <- V.hist.all  <- matrix(nrow=cat)#
+#
+            div.rate <- rbind(div.rate, dr.all)#
+            N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+            V.hist.all <- cbind(V.hist.all, v.hist.all)#
+            para.all <- rbind(para.all, p.all)#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            leg <- unlist(list(strsplit(filelist,"_t")))[seq(2,length(filelist[1:n])*2,2)]#
+#
+            if(plot.raw){#
+                    layout(matrix(c(1,1,2:7),4,2, byrow=T)) #
+                    par(pty='m')    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                        legend("topleft",legend=leg, col=1:c, ncol=length(leg), pch=1)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+            # # #
+            # names(para) <- c("gmax","a","b","E_star","dmax","resnorm")#
+            # par(mfrow=c(4,2))#
+            # barplot(d.GR, col='grey', main="GR")#
+            # for(i in 1:6) barplot(para[,i], main=colnames(para)[i])#
+    n <- n + 1  #
+    c <- c + 1#
+    }#
+
+    n <- c <- 1#
+    Conc.all <-  div.rate <- para.all <- Col <- NULL#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+        print(n)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- matrix(nrow=cat)#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+#
+                for(i in seq(2,dim(model)[2],by=1)){#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind.data.frame(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+            #
+            if(is.null(dim(N.proj.all))) N.proj.all <- V.hist.all  <- matrix(nrow=cat)#
+#
+            div.rate <- rbind(div.rate, dr.all)#
+            N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+            V.hist.all <- cbind(V.hist.all, v.hist.all)#
+            para.all <- rbind(para.all, p.all)#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            leg <- unlist(list(strsplit(filelist,"_t")))[seq(2,length(filelist[1:n])*2,2)]#
+#
+            if(plot.raw){#
+                    layout(matrix(c(1,1,2:7),4,2, byrow=T)) #
+                    par(pty='m')    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                        legend("topleft",legend=leg, col=1:c, ncol=length(leg), pch=1)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+            # # #
+            # names(para) <- c("gmax","a","b","E_star","dmax","resnorm")#
+            # par(mfrow=c(4,2))#
+            # barplot(d.GR, col='grey', main="GR")#
+            # for(i in 1:6) barplot(para[,i], main=colnames(para)[i])#
+    n <- n + 1  #
+    c <- c + 1#
+    }#
+
+plot.raw=TRUE#
+
+    n <- c <- 1#
+    Conc.all <-  div.rate <- para.all <- Col <- NULL#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+        print(n)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- matrix(nrow=cat)#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+#
+                for(i in seq(2,dim(model)[2],by=1)){#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind.data.frame(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+            #
+            if(is.null(dim(N.proj.all))) N.proj.all <- V.hist.all  <- matrix(nrow=cat)#
+#
+            div.rate <- rbind(div.rate, dr.all)#
+            N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+            V.hist.all <- cbind(V.hist.all, v.hist.all)#
+            para.all <- rbind(para.all, p.all)#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            leg <- unlist(list(strsplit(filelist,"_t")))[seq(2,length(filelist[1:n])*2,2)]#
+#
+            if(plot.raw){#
+                    layout(matrix(c(1,1,2:7),4,2, byrow=T)) #
+                    par(pty='m')    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                        legend("topleft",legend=leg, col=1:c, ncol=length(leg), pch=1)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+            # # #
+            # names(para) <- c("gmax","a","b","E_star","dmax","resnorm")#
+            # par(mfrow=c(4,2))#
+            # barplot(d.GR, col='grey', main="GR")#
+            # for(i in 1:6) barplot(para[,i], main=colnames(para)[i])#
+    n <- n + 1  #
+    c <- c + 1#
+    }#
+#
+    ### ORDERING DATA by TIME#
+#
+        Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+        #
+     #
+
+      time.interval <- unique(diff(as.numeric(colnames(Vproj))))#
+#
+        breaks <- seq(as.numeric(colnames(Vproj)[1]),as.numeric(colnames(Vproj)[dim(Vproj)[2]]),by=60*60)#
+#
+    #
+    # DIVISION #
+        h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time.numc <- as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T)))#; h.time.numc <- na.approx(h.time.numc, na.rm=F)#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#; h.dr.mean <- na.approx(h.dr.mean, na.rm=F)#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#; h.dr.sd <- na.approx(h.dr.sd, na.rm=F)#
+        #h.time <- as.POSIXct(h.time.numc,origin="1970-01-01",tz='GMT')#
+        h.time <- as.POSIXct(breaks[findInterval(h.time.numc, breaks)],origin="1970-01-01",tz='GMT')#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+           #
+   #
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- as.vector(tapply(Para.all[,"time"], h2, mean))#; h2.time.numc <- na.approx(h2.time.numc, na.rm=F)#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, mean))#; h2.gmax.mean <- na.approx(h2.gmax.mean, na.rm=F)#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, mean))#; h2.dmax.mean <- na.approx(h2.dmax.mean, na.rm=F)#
+        h2.a.mean <- as.vector(tapply(Para.all[,"a"], h2, mean))#; h2.a.mean <- na.approx(h2.a.mean, na.rm=F)#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, mean))#; h2.b.mean <- na.approx(h2.b.mean, na.rm=F)#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, mean))#; h2.E_star.mean <- na.approx(h2.E_star.mean, na.rm=F)#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, mean))#; h2.resnorm.mean <- na.approx(h2.resnorm.mean, na.rm=F)#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,sd))#; h2.gmax.sd <- na.approx(h2.gmax.sd, na.rm=F)#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, sd))#; h2.dmax.sd<- na.approx(h2.dmax.sd, na.rm=F)#
+        h2.a.sd <- as.vector(tapply(Para.all[,"a"], h2, sd))#; h2.a.sd <- na.approx(h2.a.sd, na.rm=F)#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, sd))#; h2.b.sd <- na.approx(h2.b.sd, na.rm=F)#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, sd))#; h2.E_star.sd <- na.approx(h2.E_star.sd, na.rm=F)#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, sd))#; h2.resnorm.sd <- na.approx(h2.resnorm.sd, na.rm=F)#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.a.mean,h2.a.sd, h2.b.mean,h2.b.sd )#
+#
+        DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+
+time.interval #
+
+colnames(Vproj)#
+
+#
+    n <- c <- 1#
+    Conc.all <-  div.rate <- para.all <- Col <- NULL#
+
+file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+        print(n)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- matrix(nrow=cat)#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+#
+                for(i in seq(2,dim(model)[2],by=1)){#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind.data.frame(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+
+}#
+
+      if(is.null(dim(N.proj.all))) N.proj.all <- V.hist.all  <- matrix(nrow=cat)#
+#
+            div.rate <- rbind(div.rate, dr.all)#
+            N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+            V.hist.all <- cbind(V.hist.all, v.hist.all)#
+            para.all <- rbind(para.all, p.all)#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            leg <- unlist(list(strsplit(filelist,"_t")))[seq(2,length(filelist[1:n])*2,2)]#
+
+leg #
+
+#
+            if(plot.raw){#
+                    layout(matrix(c(1,1,2:7),4,2, byrow=T)) #
+                    par(pty='m')    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                        legend("topleft",legend=filelist, col=1:c, ncol=length(filelist), pch=1)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+          #
+
+    Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+     #
+
+Nproj#
+
+#
+    n <- c <- 1#
+    Conc.all <-  div.rate <- para.all <- Col <- NULL#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+        print(n)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- matrix(nrow=cat)#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+#
+                for(i in seq(2,dim(model)[2],by=1)){#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind.data.frame(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+            #
+            if(is.null(dim(N.proj.all))) N.proj.all <- V.hist.all  <- matrix(nrow=cat)#
+#
+            div.rate <- rbind(div.rate, dr.all)#
+            N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+            V.hist.all <- cbind(V.hist.all, v.hist.all)#
+            para.all <- rbind(para.all, p.all)#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            if(plot.raw){#
+                    layout(matrix(c(1,1,2:7),4,2, byrow=T)) #
+                    par(pty='m')    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                        legend("topleft",legend=filelist, col=1:c, ncol=length(filelist), pch=1)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+            # # #
+            # names(para) <- c("gmax","a","b","E_star","dmax","resnorm")#
+            # par(mfrow=c(4,2))#
+            # barplot(d.GR, col='grey', main="GR")#
+            # for(i in 1:6) barplot(para[,i], main=colnames(para)[i])#
+    n <- n + 1  #
+    c <- c + 1#
+    }#
+#
+    ### ORDERING DATA by TIME#
+
+?legend#
+
+     if(plot.raw){#
+                    par(pty='m', mfrow=c(2,4))    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                        legend("topleft",legend=filelist, col=1:c, ncol=length(filelist), pch=1)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+
+plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='')#
+
+?plot#
+
+plot(1,1, pch=NA, ylab=NA, xlab=NA, type='n')#
+
+plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n')#
+
+            if(plot.raw){#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=length(filelist), pch=1)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+            # # #
+
+legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1)#
+
+    if(plot.raw){#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+
+#
+            if(plot.raw){#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, border=NA)#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+
+         if(plot.raw){#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+            # # #
+
+diff(as.numeric(colnames(Vproj)))#
+
+as.numeric(colnames(Vproj)[1])#
+
+as.numeric(colnames(Vproj)[dim(Vproj)[2]])#
+
+#
+#
+    n <- c <- 1#
+    Conc.all <-  div.rate <- para.all <- Col <- NULL#
+    N.proj.all <- V.hist.all  <- NULL#
+    #
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+        print(n)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- matrix(nrow=cat)#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+#
+                for(i in seq(2,dim(model)[2],by=1)){#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind.data.frame(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+            #
+            if(is.null(dim(N.proj.all))) N.proj.all <- V.hist.all  <- matrix(nrow=cat)#
+#
+            div.rate <- rbind(div.rate, dr.all)#
+            N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+            V.hist.all <- cbind(V.hist.all, v.hist.all)#
+            para.all <- rbind(para.all, p.all)#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            if(plot.raw){#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+            # # #
+            # names(para) <- c("gmax","a","b","E_star","dmax","resnorm")#
+            # par(mfrow=c(4,2))#
+            # barplot(d.GR, col='grey', main="GR")#
+            # for(i in 1:6) barplot(para[,i], main=colnames(para)[i])#
+    n <- n + 1  #
+    c <- c + 1#
+    }#
+#
+    ### ORDERING DATA by TIME#
+#
+        Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+        #
+
+Nproj#
+
+matrix(nrow=cat)#
+
+        cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- NULL#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+#
+                for(i in seq(2,dim(model)[2],by=1)){#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+            #
+
+model[4,2:dim(model)[2]][[1]]#
+
+model#
+
+model[4,]#
+
+dim(model)#
+
+test <- model[4,]#
+
+head(test)#
+
+class(test)#
+
+unlist(test)#
+
+length(unlist(model[4,]))#
+
+length(unlist(model[4,]))/cat#
+
+model[4,1]#
+
+length(unlist(model[4,-1]))#
+
+length(unlist(model[4,-1]))/cat#
+
+N.proj <- matrix(unlist(model[4,-1]), nrow=cat, ncol=length(unlist(model[4,-1]))/cat)#
+
+head(N.proj)#
+
+N.proj <- t(matrix(unlist(model[4,-1]), ncat=cat, nrow=length(unlist(model[4,-1]))/cat))#
+
+N.proj <- t(matrix(unlist(model[4,-1]), ncol=cat, nrow=length(unlist(model[4,-1]))/cat))#
+
+head(N.proj)#
+
+?matrix#
+
+N.proj <- matrix(unlist(model[4,-1]), nrow=cat, ncol=length(unlist(model[4,-1]))/cat, byrow=TRUE)#
+
+colnames(model[4,-1])#
+
+N.proj <- matrix(unlist(model[4,-1]), nrow=cat, ncol=length(unlist(model[4,-1]))/cat, byrow=TRUE)#
+
+head(N.proj)#
+
+N.proj <- t(matrix(unlist(model[4,-1]), nrow=cat, ncol=length(unlist(model[4,-1]))/cat, byrow=TRUE))#
+
+head(N.proj)#
+
+head(unlist(model[4,-1]))#
+
+N.proj <- matrix(unlist(model[4,-1]), ncol=cat, nrow=length(unlist(model[4,-1]))/cat, byrow=TRUE)#
+
+head9N.proj#
+
+head(N.proj)#
+
+N.proj <- matrix(unlist(model[4,-1]), ncol=cat, nrow=length(unlist(model[4,-1]))/cat, byrow=F)#
+
+head(N.proj)#
+
+N.proj <- t(matrix(unlist(model[4,-1]), ncol=cat, nrow=length(unlist(model[4,-1]))/cat, byrow=TRUE))#
+
+head(N.proj)#
+
+model[4,]#
+
+#
+    c <- 1#
+    Conc.all <-  div.rate <- para.all <- Col <- NULL#
+    N.proj.all <- V.hist.all  <- NULL#
+
+   load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+        print(n)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- NULL#
+            conc.proj.all <- dr.all <- p.all <- NULL#
+
+i <- 2#
+
+    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+
+    c <- 1#
+    Conc.all <-  div.rate <- para.all <- Col <- NULL#
+    N.proj.all <- V.hist.all  <- NULL#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- conc.proj.all <- dr.all <- p.all <- NULL#
+#
+             for(i in seq(2,dim(model)[2],by=1)){#
+                    if(i ==2){#
+                          para <- model[1,i][[1]]#
+                        p.all <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                            dr <- model[2,i][[1]]#
+                        dr.all <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                        v.hist.all <- model[3,i][[1]]   #
+                        n.proj.all <- model[4,i][[1]]#
+#
+                    }else{#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+             }   #
+            #
+            if(c ==1){#
+                div.rate <- dr.all#
+                N.proj.all <- n.proj.all#
+                V.hist.all <- v.hist.all#
+                para.all <- p.all#
+                  }else{#
+                div.rate <- rbind(div.rate, dr.all)#
+                N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+                V.hist.all <- cbind(V.hist.all, v.hist.all)#
+                para.all <- rbind(para.all, p.all)#
+                }#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            if(plot.raw){#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+        c <- c + 1  #
+    }#
+
+        Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+        #
+
+head(Nproj)#
+
+model[1,i][[1]]#
+
+colnames(dr)#
+
+diff(as.numeric(colnames(v.proj)))#
+
+median(diff(as.numeric(colnames(v.proj))))#
+
+breaks <- seq(as.numeric(colnames(Vproj)[1]),as.numeric(colnames(Vproj)[dim(Vproj)[2]]),by= time.interval)#
+
+ # DIVISION #
+        h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time.numc <- as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T)))#; h.time.numc <- na.approx(h.time.numc, na.rm=F)#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#; h.dr.mean <- na.approx(h.dr.mean, na.rm=F)#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#; h.dr.sd <- na.approx(h.dr.sd, na.rm=F)#
+        #h.time <- as.POSIXct(h.time.numc,origin="1970-01-01",tz='GMT')#
+        h.time <- as.POSIXct(breaks[findInterval(h.time.numc, breaks)],origin="1970-01-01",tz='GMT')#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+           #
+   #
+
+breaks#
+
+dim(Vproj)[2]]#
+
+dim(Vproj)[2]#
+
+as.numeric(colnames(Vproj)[dim(Vproj)[2]])#
+
+as.numeric(colnames(Vproj)[1])#
+
+range(as.numeric(colnames(Vproj))#
+
+)#
+
+breaks <- seq(time.range[1],time.range[2], by= time.interval)#
+
+    time.interval <- median(diff(as.numeric(colnames(v.proj))))#
+        time.range <- range(as.numeric(colnames(Vproj))#
+        breaks <- seq(time.range[1],time.range[2], by= time.interval)#
+
+        time.interval <- median(diff(as.numeric(colnames(v.proj))))#
+        time.range <- range(as.numeric(colnames(Vproj)))#
+        breaks <- seq(time.range[1],time.range[2], by= time.interval)#
+
+    h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time.numc <- as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T)))#; h.time.numc <- na.approx(h.time.numc, na.rm=F)#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#; h.dr.mean <- na.approx(h.dr.mean, na.rm=F)#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#; h.dr.sd <- na.approx(h.dr.sd, na.rm=F)#
+        #h.time <- as.POSIXct(h.time.numc,origin="1970-01-01",tz='GMT')#
+        h.time <- as.POSIXct(breaks[findInterval(h.time.numc, breaks)],origin="1970-01-01",tz='GMT')#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+
+D #
+
+head(D)#
+
+plot.CI(DP$h.time, DP$h.dr.mean, uiw=DP$h.dr.sd)#
+
+require(plotrix)#
+
+plotCI(DP$h.time, DP$h.dr.mean, uiw=DP$h.dr.sd)#
+
+plotCI(D$h.time, D$h.dr.mean, uiw=D$h.dr.sd)#
+
+plotCI(D$h.time, D$h.dr.mean, uiw=D$h.dr.sd, sfrac=0)#
+
+     h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- as.vector(tapply(Para.all[,"time"], h2, mean))#; h2.time.numc <- na.approx(h2.time.numc, na.rm=F)#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, mean))#; h2.gmax.mean <- na.approx(h2.gmax.mean, na.rm=F)#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, mean))#; h2.dmax.mean <- na.approx(h2.dmax.mean, na.rm=F)#
+        h2.a.mean <- as.vector(tapply(Para.all[,"a"], h2, mean))#; h2.a.mean <- na.approx(h2.a.mean, na.rm=F)#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, mean))#; h2.b.mean <- na.approx(h2.b.mean, na.rm=F)#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, mean))#; h2.E_star.mean <- na.approx(h2.E_star.mean, na.rm=F)#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, mean))#; h2.resnorm.mean <- na.approx(h2.resnorm.mean, na.rm=F)#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,sd))#; h2.gmax.sd <- na.approx(h2.gmax.sd, na.rm=F)#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, sd))#; h2.dmax.sd<- na.approx(h2.dmax.sd, na.rm=F)#
+        h2.a.sd <- as.vector(tapply(Para.all[,"a"], h2, sd))#; h2.a.sd <- na.approx(h2.a.sd, na.rm=F)#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, sd))#; h2.b.sd <- na.approx(h2.b.sd, na.rm=F)#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, sd))#; h2.E_star.sd <- na.approx(h2.E_star.sd, na.rm=F)#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, sd))#; h2.resnorm.sd <- na.approx(h2.resnorm.sd, na.rm=F)#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.a.mean,h2.a.sd, h2.b.mean,h2.b.sd )#
+
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- as.vector(tapply(Para.all[,"time"], h2, mean))]#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, mean))]#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, mean))]#
+]        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, mean))]#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, mean))]#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, mean))]#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,sd))]#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, sd))]#
+]        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, sd))]#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, sd))]#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, sd))]#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, ]h2.b.mean,h2.b.sd )#
+
+    # DIVISION #
+        h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time.numc <- as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T)))#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#
+        h.time <- as.POSIXct(breaks[findInterval(h.time.numc, breaks)],origin="1970-01-01",tz='GMT')#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+           #
+   #
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- as.vector(tapply(Para.all[,"time"], h2, mean))#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, mean))#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, mean))#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, mean))#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, mean))#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, mean))#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,sd))#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, sd))#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, sd))#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, sd))#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, sd))#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+
+     P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, ]h2.b.mean,h2.b.sd )#
+#
+        DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.b.mean,h2.b.sd)#
+
+DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+
+head(DP)#
+
+head(DP,50)#
+#
+
+h.time.numc #
+
+h1 <- cut(as.numeric(rownames(Vproj.all)), breaks=breaks)#
+
+h1 <- cut(as.numeric(rownames(Vproj)), breaks=breaks)#
+
+h1.time <- as.vector(tapply(as.numeric(rownames(Vproj)), h1, mean))#
+
+            h1.vhist.mean <- NULL#
+                for(i in 1:ncol(Vproj.all)){#
+                    h1.vhist <- t(tapply(Vproj[,i], h1, mean))#
+                    h1.vhist.mean <- rbind(h1.vhist.mean, h1.vhist)#
+                    }#
+
+            h1.vhist.mean <- NULL#
+                for(i in 1:ncol(Vproj)){#
+                    h1.vhist <- t(tapply(Vproj[,i], h1, mean))#
+                    h1.vhist.mean <- rbind(h1.vhist.mean, h1.vhist)#
+                    }#
+
+head(h1.Vhist.mean)#
+
+head(h1.vhist.mean)#
+#
+
+head(h1.vhist.mean,50)#
+#
+#
+
+ncol(Vproj)#
+
+Div.rate#
+
+i <- 1#
+
+cbind(as.numeric(colnames(Vproj[i,])), Vproj[i,])#
+
+as.numeric(colnames(Vproj[i,]))#
+
+Vproj[i,]#
+
+cbind(as.numeric(colnames(Vproj[i,])), Vproj[i,])#
+
+class(as.numeric(colnames(Vproj[i,])))#
+
+c(as.numeric(colnames(Vproj[i,])), Vproj[i,])#
+
+h1.vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+
+h1.vist#
+
+h1.vhist#
+#
+
+h1.vhist <- as.vector(tapply(h1.vhist, h1, mean))#
+
+h1 <- cut(as.numeric(colnames(Vproj)), breaks=breaks)#
+
+h1#
+
+h1.time <- as.vector(tapply(as.numeric(colnames(Vproj)), h1, mean))#
+
+h1.time #
+
+    h1 <- cut(as.numeric(colnames(Vproj)), breaks=breaks)#
+        h1.time <- as.vector(tapply(as.numeric(colnames(Vproj)), h1, mean))#
+#
+            h1.vhist.mean <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    h1.vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1.vhist <- as.vector(tapply(h1.vhist, h1, mean))#
+                    h1.vhist.mean <- rbind(h1.vhist.mean, h1.vhist)#
+                    }#
+
+h1.vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+
+as.vector(tapply(h1.vhist, h1, mean))#
+
+h1#
+
+length(h1)#
+
+length(h1.vhist)#
+
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(vhist [,1], h, function(x) mean(x, na.rm=T)))#
+
+h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+
+h1.vhist.mean#
+
+        h1 <- cut(as.numeric(colnames(Vproj)), breaks=breaks)#
+        h1.time <- as.vector(tapply(as.numeric(colnames(Vproj)), h1, mean))#
+#
+            h1.vhist.mean <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(vhist [,1], h, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    h1.Vproj.mean <- rbind(h1.Vproj, h1.vhist.mean)#
+                    h1.Vproj.sd <- rbind(h1.Vproj, h1.vhist.sd)#
+                    }#
+
+#
+            h1.Vproj <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(vhist [,1], h, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    h1.Vproj.mean <- rbind(h1.Vproj, h1.vhist.mean)#
+                    h1.Vproj.sd <- rbind(h1.Vproj, h1.vhist.sd)#
+                    }#
+
+h1.Vproj.mean#
+
+        h1 <- cut(as.numeric(colnames(Vproj)), breaks=breaks)#
+        h1.time <- as.vector(tapply(as.numeric(colnames(Vproj)), h1, mean))#
+#
+            h1.Vproj.mean <- h1.Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(vhist [,1], h, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    h1.Vproj.mean <- rbind(h1.Vproj.mean, h1.vhist.mean)#
+                    h1.Vproj.sd <- rbind(h1.Vproj.sd, h1.vhist.sd)#
+                    }#
+
+head(h1.Vproj.mean)#
+
+row.names(Vproj)#
+
+row.names(h1.Vproj.mean) <- row.names(Vproj)   #
+
+setwd("/Users/francois/Documents/DATA/Codes/ssPopModel/R")#
+
+row.names(h1.Vproj.mean) <- row.names(Vproj)#
+
+row.names(h1.Vproj.mean) <-  row.names(h1.Vproj.sd) <- row.names(Vproj)#
+
+h1.Vproj.mean#
+
+setwd("/Users/francois/Documents/DATA/Codes/ssPopModel/R")#
+
+h1.time #
+
+col.names(h1.Vproj.mean) <-  col.names(h1.Vproj.sd) <- h1.time #
+
+colnames(h1.Vproj.mean) <-  colnames(h1.Vproj.sd) <- h1.time #
+
+colnames(h1.Vproj.sd)#
+
+h1.Vproj.sd #
+
+colnames(h1.Vproj.sd) #
+
+length(h1.time)#
+
+breaks#
+
+h1#
+
+         h1.Vproj.mean <- h1.Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(vhist [,1], h, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    h1.Vproj.mean <- rbind.data.frame(h1.Vproj.mean, h1.vhist.mean)#
+                    h1.Vproj.sd <- rbind.data.frame(h1.Vproj.sd, h1.vhist.sd)#
+                    }#
+
+row.names(h1.Vproj.mean) <-  row.names(h1.Vproj.sd) <- row.names(Vproj)#
+
+colnames(h1.Vproj.sd)#
+
+h1.Vproj.mean#
+
+breaks#
+
+         h1.Vproj.mean <- h1.Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(vhist [,1], h, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    h1.Vproj.mean <- rbind.data.frame(h1.Vproj.mean, h1.vhist.mean)#
+                    h1.Vproj.sd <- rbind.data.frame(h1.Vproj.sd, h1.vhist.sd)#
+                    }#
+            row.names(h1.Vproj.mean) <-  row.names(h1.Vproj.sd) <- row.names(Vproj)#
+
+setwd("/Users/francois/Documents/DATA/Codes/ssPopModel/R")#
+
+h1.Vproj.mean#
+
+         h1.Vproj.mean <- h1.Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(vhist [,1], h, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    h1.Vproj.mean <- rbind(h1.Vproj.mean, h1.vhist.mean)#
+                    h1.Vproj.sd <- rbind(h1.Vproj.sd, h1.vhist.sd)#
+                    }#
+
+row.names(h1.Vproj.mean) <-  row.names(h1.Vproj.sd) <- row.names(Vproj)#
+
+names(h1.Vproj.mean)#
+
+colnames(h1.Vproj.mean)#
+
+h1#
+
+vhist[,1]#
+
+h1.time#
+
+colnames(h1.Vproj.sd) <- h1.time#
+
+dim(h1.Vproj.sd)#
+
+dim(h1.time)#
+
+length(h1.time)#
+
+ # SIZE DISTRIBUTION#
+         h1.Vproj.mean <- h1.Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(vhist [,1], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    h1.Vproj.mean <- rbind(h1.Vproj.mean, h1.vhist.mean)#
+                    h1.Vproj.sd <- rbind(h1.Vproj.sd, h1.vhist.sd)#
+                    }#
+            row.names(h1.Vproj.mean) <-  row.names(h1.Vproj.sd) <- row.names(Vproj)#
+            colnames(h1.Vproj.mean) <-  colnames(h1.Vproj.sd) <- h1.time#
+
+h1.Vproj.mean#
+
+         h1.Nproj.mean <- h1.Nproj.sd <- NULL#
+                 for(i in 1:nrow(Nproj)){#
+                    nhist <- cbind(as.numeric(colnames(Nproj[i,])), unlist(Nproj[i,]))#
+                    h1 <- cut(nhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(nhist [,1], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.mean <- as.vector(tapply(nhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.sd <- as.vector(tapply(nhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    h1.Nproj.mean <- rbind(h1.Nproj.mean, h1.nhist.mean)#
+                    h1.Nproj.sd <- rbind(h1.Nproj.sd, h1.nhist.sd)#
+                    }#
+            row.names(h1.Nproj.mean) <-  row.names(h1.Nproj.sd) <- row.names(Nproj)#
+            colnames(h1.Nproj.mean) <-  colnames(h1.Nproj.sd) <- h1.time#
+
+         Vproj.mean <- Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(vhist [,1], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Vproj.mean <- rbind(Vproj.mean, h1.vhist.mean)#
+                    Vproj.sd <- rbind(Vproj.sd, h1.vhist.sd)#
+                    }#
+            row.names(Vproj.mean) <-  row.names(Vproj.sd) <- row.names(Vproj)#
+            colnames(Vproj.mean) <-  colnames(Vproj.sd) <- h1.time#
+ #
+         Nproj.mean <- Nproj.sd <- NULL#
+                 for(i in 1:nrow(Nproj)){#
+                    nhist <- cbind(as.numeric(colnames(Nproj[i,])), unlist(Nproj[i,]))#
+                    h1 <- cut(nhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- as.vector(tapply(nhist [,1], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.mean <- as.vector(tapply(nhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.sd <- as.vector(tapply(nhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Nproj.mean <- rbind(Nproj.mean, h1.nhist.mean)#
+                    Nproj.sd <- rbind(Nproj.sd, h1.nhist.sd)#
+                    }#
+            row.names(Nproj.mean) <-  row.names(Nproj.sd) <- row.names(Nproj)#
+            colnames(Nproj.mean) <-  colnames(Nproj.sd) <- h1.time#
+
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- as.vector(tapply(Para.all[,"time"], h2, function(x) mean(x, na.rm=T)))#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, function(x) mean(x, na.rm=T)))#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) mean(x, na.rm=T)))#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) mean(x, na.rm=T)))#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,function(x) sd(x, na.rm=T)))#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) sd(x, na.rm=T)))#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, function(x) sd(x, na.rm=T)))#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) sd(x, na.rm=T)))#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) sd(x, na.rm=T)))#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.b.mean,h2.b.sd)#
+#
+        DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+
+binned.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)#
+
+binned.model.output #
+
+#
+        binned.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)#
+        names(binned.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")#
+
+str(binned.model.output)#
+
+heaDP#
+
+head(DP)#
+
+seq(2,12,by=2)#
+
+   par(mfrow=c(3,2))#
+            for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0)#
+        #
+
+for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab='time', ylab=paste(DP[,i]))#
+
+for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab='time', ylab=paste(colnames(DP[,i]))#
+
+)#
+
+paste(colnames(DP[,i])#
+
+paste(colnames(DP[,i]))#
+
+setwd("/Users/francois/Documents/DATA/Codes/ssPopModel/R")#
+
+olnames(DP[,i])#
+
+colnames(DP[,i])#
+
+colnames(DP)#
+
+for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab='time', ylab=paste(colnames(DP)[i])#
+
+)#
+
+      par(mfrow=c(3,2))#
+            DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01")#
+            for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab='time', ylab=paste(colnames(DP)[i]))#
+     #
+
+        if(!(plot.raw)){#
+            par(mfrow=c(3,2))#
+            DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01")#
+                 for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab=NA, ylab=paste(colnames(DP)[i]))#
+                   }#
+
+  par(mfrow=c(3,2))#
+            DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01")#
+                 for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab=NA, ylab=paste(colnames(DP)[i]))#
+
+              para.all[,"time"] <- as.POSIXct(para.all[,"time"], origin='1970-01-01')#
+                    div.rate[,1] <- as.POSIXct(div.rate[,1], origin='1970-01-01')#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(div.rate, ylab="Div Rate", xlab="time",col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab="time",col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab="time",col = Col)#
+                    }#
+        c <-#
+
+              para.all[,"time"] <- as.POSIXct(para.all[,"time"], origin='1970-01-01')#
+                    div.rate[,1] <- as.POSIXct(div.rate[,1], origin='1970-01-01')#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(div.rate[,1],div.rate[,2], ylab="Div Rate", xlab=NA,col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)#
+    #
+
+div.rate[,1]#
+
+as.POSIXct(div.rate[,1], origin='1970-01-01')#
+
+             para.all[,"time"] <- as.POSIXct(para.all[,"time"], origin='1970-01-01')#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(as.POSIXct(div.rate[,1], origin='1970-01-01'),div.rate[,2], ylab="Div Rate", xlab=NA,col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)#
+   #
+
+#
+binning.model.output <- function(model.output, plot.raw=TRUE){#
+#
+    require(plotrix)#
+#
+#
+    c <- 1#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- conc.proj.all <- dr.all <- p.all <- NULL#
+#
+             for(i in seq(2,dim(model)[2],by=1)){#
+                    if(i ==2){#
+                          para <- model[1,i][[1]]#
+                        p.all <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                            dr <- model[2,i][[1]]#
+                        dr.all <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                        v.hist.all <- model[3,i][[1]]   #
+                        n.proj.all <- model[4,i][[1]]#
+#
+                    }else{#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+             }   #
+            #
+            if(c ==1){#
+                div.rate <- dr.all#
+                N.proj.all <- n.proj.all#
+                V.hist.all <- v.hist.all#
+                para.all <- p.all#
+                  }else{#
+                div.rate <- rbind(div.rate, dr.all)#
+                N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+                V.hist.all <- cbind(V.hist.all, v.hist.all)#
+                para.all <- rbind(para.all, p.all)#
+                }#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            if(plot.raw){#
+                    para.all[,"time"] <- as.POSIXct(para.all[,"time"], origin='1970-01-01')#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(as.POSIXct(div.rate[,1], origin='1970-01-01'),div.rate[,2], ylab="Div Rate", xlab=NA,col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)#
+                    }#
+        c <- c + 1  #
+    }#
+#
+    ### ORDERING DATA by TIME#
+#
+        Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+        #
+     #
+#
+################
+### BINNING ####
+################
+#
+        time.interval <- median(diff(as.numeric(colnames(v.proj))))#
+        time.range <- range(as.numeric(colnames(Vproj)))#
+        breaks <- seq(time.range[1],time.range[2], by= time.interval)#
+#
+    #
+    # DIVISION #
+        h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time <- round(as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T))))#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+           #
+    # SIZE DISTRIBUTION#
+         Vproj.mean <- Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(vhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Vproj.mean <- rbind(Vproj.mean, h1.vhist.mean)#
+                    Vproj.sd <- rbind(Vproj.sd, h1.vhist.sd)#
+                    }#
+            row.names(Vproj.mean) <-  row.names(Vproj.sd) <- row.names(Vproj)#
+            colnames(Vproj.mean) <-  colnames(Vproj.sd) <- h1.time#
+ #
+         Nproj.mean <- Nproj.sd <- NULL#
+                 for(i in 1:nrow(Nproj)){#
+                    nhist <- cbind(as.numeric(colnames(Nproj[i,])), unlist(Nproj[i,]))#
+                    h1 <- cut(nhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(nhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.nhist.mean <- as.vector(tapply(nhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.sd <- as.vector(tapply(nhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Nproj.mean <- rbind(Nproj.mean, h1.nhist.mean)#
+                    Nproj.sd <- rbind(Nproj.sd, h1.nhist.sd)#
+                    }#
+            row.names(Nproj.mean) <-  row.names(Nproj.sd) <- row.names(Nproj)#
+            colnames(Nproj.mean) <-  colnames(Nproj.sd) <- h1.time#
+#
+#
+#
+#
+#
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- round(as.vector(tapply(Para.all[,"time"], h2, function(x) mean(x, na.rm=T))))#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, function(x) mean(x, na.rm=T)))#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) mean(x, na.rm=T)))#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) mean(x, na.rm=T)))#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,function(x) sd(x, na.rm=T)))#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) sd(x, na.rm=T)))#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, function(x) sd(x, na.rm=T)))#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) sd(x, na.rm=T)))#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) sd(x, na.rm=T)))#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.b.mean,h2.b.sd)#
+#
+        DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+#
+#
+#
+    #
+#
+        if(!(plot.raw)){#
+            par(mfrow=c(3,2))#
+            DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01")#
+                 for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab=NA, ylab=paste(colnames(DP)[i]))#
+                   }#
+#
+#
+#
+#
+    binned.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)#
+    names(binned.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")#
+     return(binned.model.output)#
+#
+#
+}#
+
+test <- binning.model.output(filelist)#
+
+filelist#
+
+list.files(paste(model.output,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""), fullnames=T)#
+
+?list.files#
+
+all.filelist <- list.files(paste(model.output,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""), full.names=T)#
+
+filelist <- list.files(paste(model.output,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""), full.names=T)#
+
+#
+bin.model.output <- function(model.output, plot.raw=TRUE){#
+#
+    require(plotrix)#
+#
+#
+    c <- 1#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(paste(model.output,cruise,file, sep="/"))#
+        print(file)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- conc.proj.all <- dr.all <- p.all <- NULL#
+#
+             for(i in seq(2,dim(model)[2],by=1)){#
+                    if(i ==2){#
+                          para <- model[1,i][[1]]#
+                        p.all <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                            dr <- model[2,i][[1]]#
+                        dr.all <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                        v.hist.all <- model[3,i][[1]]   #
+                        n.proj.all <- model[4,i][[1]]#
+#
+                    }else{#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+             }   #
+            #
+            if(c ==1){#
+                div.rate <- dr.all#
+                N.proj.all <- n.proj.all#
+                V.hist.all <- v.hist.all#
+                para.all <- p.all#
+                  }else{#
+                div.rate <- rbind(div.rate, dr.all)#
+                N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+                V.hist.all <- cbind(V.hist.all, v.hist.all)#
+                para.all <- rbind(para.all, p.all)#
+                }#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            if(plot.raw){#
+                    para.all[,"time"] <- as.POSIXct(para.all[,"time"], origin='1970-01-01')#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(as.POSIXct(div.rate[,1], origin='1970-01-01'),div.rate[,2], ylab="Div Rate", xlab=NA,col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)#
+                    }#
+        c <- c + 1  #
+    }#
+#
+    ### ORDERING DATA by TIME#
+#
+        Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+        #
+     #
+#
+################
+### BINNING ####
+################
+#
+        time.interval <- median(diff(as.numeric(colnames(v.proj))))#
+        time.range <- range(as.numeric(colnames(Vproj)))#
+        breaks <- seq(time.range[1],time.range[2], by= time.interval)#
+#
+    #
+    # DIVISION #
+        h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time <- round(as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T))))#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+           #
+    # SIZE DISTRIBUTION#
+         Vproj.mean <- Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(vhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Vproj.mean <- rbind(Vproj.mean, h1.vhist.mean)#
+                    Vproj.sd <- rbind(Vproj.sd, h1.vhist.sd)#
+                    }#
+            row.names(Vproj.mean) <-  row.names(Vproj.sd) <- row.names(Vproj)#
+            colnames(Vproj.mean) <-  colnames(Vproj.sd) <- h1.time#
+ #
+         Nproj.mean <- Nproj.sd <- NULL#
+                 for(i in 1:nrow(Nproj)){#
+                    nhist <- cbind(as.numeric(colnames(Nproj[i,])), unlist(Nproj[i,]))#
+                    h1 <- cut(nhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(nhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.nhist.mean <- as.vector(tapply(nhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.sd <- as.vector(tapply(nhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Nproj.mean <- rbind(Nproj.mean, h1.nhist.mean)#
+                    Nproj.sd <- rbind(Nproj.sd, h1.nhist.sd)#
+                    }#
+            row.names(Nproj.mean) <-  row.names(Nproj.sd) <- row.names(Nproj)#
+            colnames(Nproj.mean) <-  colnames(Nproj.sd) <- h1.time#
+#
+#
+#
+#
+#
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- round(as.vector(tapply(Para.all[,"time"], h2, function(x) mean(x, na.rm=T))))#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, function(x) mean(x, na.rm=T)))#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) mean(x, na.rm=T)))#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) mean(x, na.rm=T)))#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,function(x) sd(x, na.rm=T)))#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) sd(x, na.rm=T)))#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, function(x) sd(x, na.rm=T)))#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) sd(x, na.rm=T)))#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) sd(x, na.rm=T)))#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.b.mean,h2.b.sd)#
+#
+        DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+#
+#
+#
+    #
+#
+        if(!(plot.raw)){#
+            par(mfrow=c(3,2))#
+            DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01")#
+                 for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab=NA, ylab=paste(colnames(DP)[i]))#
+                   }#
+#
+#
+#
+#
+    binned.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)#
+    names(binned.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")#
+     return(binned.model.output)#
+#
+#
+}#
+
+#
+bin.model.output <- function(model.output, plot.raw=TRUE){#
+#
+    require(plotrix)#
+#
+#
+    c <- 1#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(file)#
+        print(file)#
+#
+            cat <- nrow(model[4,2][[1]])#
+            n.proj.all <- v.hist.all  <- conc.proj.all <- dr.all <- p.all <- NULL#
+#
+             for(i in seq(2,dim(model)[2],by=1)){#
+                    if(i ==2){#
+                          para <- model[1,i][[1]]#
+                        p.all <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                            dr <- model[2,i][[1]]#
+                        dr.all <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                        v.hist.all <- model[3,i][[1]]   #
+                        n.proj.all <- model[4,i][[1]]#
+#
+                    }else{#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+             }   #
+            #
+            if(c ==1){#
+                div.rate <- dr.all#
+                N.proj.all <- n.proj.all#
+                V.hist.all <- v.hist.all#
+                para.all <- p.all#
+                  }else{#
+                div.rate <- rbind(div.rate, dr.all)#
+                N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+                V.hist.all <- cbind(V.hist.all, v.hist.all)#
+                para.all <- rbind(para.all, p.all)#
+                }#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            if(plot.raw){#
+                    para.all[,"time"] <- as.POSIXct(para.all[,"time"], origin='1970-01-01')#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(as.POSIXct(div.rate[,1], origin='1970-01-01'),div.rate[,2], ylab="Div Rate", xlab=NA,col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)#
+                    }#
+        c <- c + 1  #
+    }#
+#
+    ### ORDERING DATA by TIME#
+#
+        Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+        #
+     #
+#
+################
+### BINNING ####
+################
+#
+        time.interval <- median(diff(as.numeric(colnames(v.proj))))#
+        time.range <- range(as.numeric(colnames(Vproj)))#
+        breaks <- seq(time.range[1],time.range[2], by= time.interval)#
+#
+    #
+    # DIVISION #
+        h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time <- round(as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T))))#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+           #
+    # SIZE DISTRIBUTION#
+         Vproj.mean <- Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(vhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Vproj.mean <- rbind(Vproj.mean, h1.vhist.mean)#
+                    Vproj.sd <- rbind(Vproj.sd, h1.vhist.sd)#
+                    }#
+            row.names(Vproj.mean) <-  row.names(Vproj.sd) <- row.names(Vproj)#
+            colnames(Vproj.mean) <-  colnames(Vproj.sd) <- h1.time#
+ #
+         Nproj.mean <- Nproj.sd <- NULL#
+                 for(i in 1:nrow(Nproj)){#
+                    nhist <- cbind(as.numeric(colnames(Nproj[i,])), unlist(Nproj[i,]))#
+                    h1 <- cut(nhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(nhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.nhist.mean <- as.vector(tapply(nhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.sd <- as.vector(tapply(nhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Nproj.mean <- rbind(Nproj.mean, h1.nhist.mean)#
+                    Nproj.sd <- rbind(Nproj.sd, h1.nhist.sd)#
+                    }#
+            row.names(Nproj.mean) <-  row.names(Nproj.sd) <- row.names(Nproj)#
+            colnames(Nproj.mean) <-  colnames(Nproj.sd) <- h1.time#
+#
+#
+#
+#
+#
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- round(as.vector(tapply(Para.all[,"time"], h2, function(x) mean(x, na.rm=T))))#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, function(x) mean(x, na.rm=T)))#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) mean(x, na.rm=T)))#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) mean(x, na.rm=T)))#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,function(x) sd(x, na.rm=T)))#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) sd(x, na.rm=T)))#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, function(x) sd(x, na.rm=T)))#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) sd(x, na.rm=T)))#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) sd(x, na.rm=T)))#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.b.mean,h2.b.sd)#
+#
+        DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+#
+#
+#
+    #
+#
+        if(!(plot.raw)){#
+            par(mfrow=c(3,2))#
+            DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01")#
+                 for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab=NA, ylab=paste(colnames(DP)[i]))#
+                   }#
+#
+#
+#
+#
+    binned.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)#
+    names(binned.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")#
+     return(binned.model.output)#
+#
+#
+}#
+
+test <- bin.model.output(filelist)#
+
+#
+#
+bin.model.output <- function(output.files, plot.raw=TRUE){#
+#
+    require(plotrix)#
+#
+#
+    c <- 1#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(file)#
+        print(file)#
+#
+            n.proj.all <- v.hist.all  <- dr.all <- p.all <- NULL#
+#
+             for(i in seq(2,dim(model)[2],by=1)){#
+                    if(i ==2){#
+                          para <- model[1,i][[1]]#
+                        p.all <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                            dr <- model[2,i][[1]]#
+                        dr.all <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                        v.hist.all <- model[3,i][[1]]   #
+                        n.proj.all <- model[4,i][[1]]#
+#
+                    }else{#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+             }   #
+            #
+            if(c ==1){#
+                div.rate <- dr.all#
+                N.proj.all <- n.proj.all#
+                V.hist.all <- v.hist.all#
+                para.all <- p.all#
+                  #
+                }else{#
+                div.rate <- rbind(div.rate, dr.all)#
+                N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+                V.hist.all <- cbind(V.hist.all, v.hist.all)#
+                para.all <- rbind(para.all, p.all)#
+                }#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            if(plot.raw){#
+                    #para.all[,"time"] <- as.POSIXct(para.all[,"time"], origin='1970-01-01')#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(as.POSIXct(div.rate[,1], origin='1970-01-01'),div.rate[,2], ylab="Div Rate", xlab=NA,col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)#
+                    }#
+        c <- c + 1  #
+    }#
+#
+    ### ORDERING DATA by TIME#
+#
+        Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+        #
+     #
+#
+################
+### BINNING ####
+################
+#
+        time.interval <- median(diff(as.numeric(colnames(v.proj))))#
+        time.range <- range(as.numeric(colnames(Vproj)))#
+        breaks <- seq(time.range[1],time.range[2], by= time.interval)#
+#
+    #
+    # DIVISION #
+        h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time <- round(as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T))))#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+           #
+    # SIZE DISTRIBUTION#
+         Vproj.mean <- Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(vhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Vproj.mean <- rbind(Vproj.mean, h1.vhist.mean)#
+                    Vproj.sd <- rbind(Vproj.sd, h1.vhist.sd)#
+                    }#
+            row.names(Vproj.mean) <-  row.names(Vproj.sd) <- row.names(Vproj)#
+            colnames(Vproj.mean) <-  colnames(Vproj.sd) <- h1.time#
+ #
+         Nproj.mean <- Nproj.sd <- NULL#
+                 for(i in 1:nrow(Nproj)){#
+                    nhist <- cbind(as.numeric(colnames(Nproj[i,])), unlist(Nproj[i,]))#
+                    h1 <- cut(nhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(nhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.nhist.mean <- as.vector(tapply(nhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.sd <- as.vector(tapply(nhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Nproj.mean <- rbind(Nproj.mean, h1.nhist.mean)#
+                    Nproj.sd <- rbind(Nproj.sd, h1.nhist.sd)#
+                    }#
+            row.names(Nproj.mean) <-  row.names(Nproj.sd) <- row.names(Nproj)#
+            colnames(Nproj.mean) <-  colnames(Nproj.sd) <- h1.time#
+#
+#
+#
+#
+#
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- round(as.vector(tapply(Para.all[,"time"], h2, function(x) mean(x, na.rm=T))))#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, function(x) mean(x, na.rm=T)))#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) mean(x, na.rm=T)))#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) mean(x, na.rm=T)))#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,function(x) sd(x, na.rm=T)))#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) sd(x, na.rm=T)))#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, function(x) sd(x, na.rm=T)))#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) sd(x, na.rm=T)))#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) sd(x, na.rm=T)))#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.b.mean,h2.b.sd)#
+#
+        DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+#
+#
+#
+    #
+#
+        if(!(plot.raw)){#
+            par(mfrow=c(3,2))#
+            DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01")#
+                 for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab=NA, ylab=paste(colnames(DP)[i]))#
+                   }#
+#
+#
+#
+#
+    binned.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)#
+    names(binned.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")#
+     return(binned.model.output)#
+#
+#
+}#
+
+test <- bin.model.output(filelist)#
+#
+
+para.all[,"time"],#
+
+para.all[,"time"]#
+
+bin.model.output <- function(output.files, plot.raw=TRUE){#
+#
+    require(plotrix)#
+#
+#
+    c <- 1#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(file)#
+        print(file)#
+#
+            n.proj.all <- v.hist.all  <- dr.all <- p.all <- NULL#
+#
+             for(i in seq(2,dim(model)[2],by=1)){#
+                    if(i ==2){#
+                          para <- model[1,i][[1]]#
+                        p.all <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                            dr <- model[2,i][[1]]#
+                        dr.all <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                        v.hist.all <- model[3,i][[1]]   #
+                        n.proj.all <- model[4,i][[1]]#
+#
+                    }else{#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+             }   #
+            #
+            if(c ==1){#
+                div.rate <- dr.all#
+                N.proj.all <- n.proj.all#
+                V.hist.all <- v.hist.all#
+                para.all <- p.all#
+                  #
+                }else{#
+                div.rate <- rbind(div.rate, dr.all)#
+                N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+                V.hist.all <- cbind(V.hist.all, v.hist.all)#
+                para.all <- rbind(para.all, p.all)#
+                }#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            if(plot.raw){#
+                    para.all$time <- as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT')#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(as.POSIXct(div.rate[,1], origin='1970-01-01'),div.rate[,2], ylab="Div Rate", xlab=NA,col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(para.all[,"time"], para.all[,"gmax"], ylab="gmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"dmax"],ylab="dmax", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"b"],ylab="b", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)#
+                    plot(para.all[,"time"], para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)#
+                    }#
+        c <- c + 1  #
+    }#
+#
+    ### ORDERING DATA by TIME#
+#
+        Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+        #
+     #
+#
+################
+### BINNING ####
+################
+#
+        time.interval <- median(diff(as.numeric(colnames(v.proj))))#
+        time.range <- range(as.numeric(colnames(Vproj)))#
+        breaks <- seq(time.range[1],time.range[2], by= time.interval)#
+#
+    #
+    # DIVISION #
+        h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time <- round(as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T))))#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+           #
+    # SIZE DISTRIBUTION#
+         Vproj.mean <- Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(vhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Vproj.mean <- rbind(Vproj.mean, h1.vhist.mean)#
+                    Vproj.sd <- rbind(Vproj.sd, h1.vhist.sd)#
+                    }#
+            row.names(Vproj.mean) <-  row.names(Vproj.sd) <- row.names(Vproj)#
+            colnames(Vproj.mean) <-  colnames(Vproj.sd) <- h1.time#
+ #
+         Nproj.mean <- Nproj.sd <- NULL#
+                 for(i in 1:nrow(Nproj)){#
+                    nhist <- cbind(as.numeric(colnames(Nproj[i,])), unlist(Nproj[i,]))#
+                    h1 <- cut(nhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(nhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.nhist.mean <- as.vector(tapply(nhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.sd <- as.vector(tapply(nhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Nproj.mean <- rbind(Nproj.mean, h1.nhist.mean)#
+                    Nproj.sd <- rbind(Nproj.sd, h1.nhist.sd)#
+                    }#
+            row.names(Nproj.mean) <-  row.names(Nproj.sd) <- row.names(Nproj)#
+            colnames(Nproj.mean) <-  colnames(Nproj.sd) <- h1.time#
+#
+#
+#
+#
+#
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- round(as.vector(tapply(Para.all[,"time"], h2, function(x) mean(x, na.rm=T))))#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, function(x) mean(x, na.rm=T)))#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) mean(x, na.rm=T)))#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) mean(x, na.rm=T)))#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,function(x) sd(x, na.rm=T)))#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) sd(x, na.rm=T)))#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, function(x) sd(x, na.rm=T)))#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) sd(x, na.rm=T)))#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) sd(x, na.rm=T)))#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.b.mean,h2.b.sd)#
+#
+        DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+#
+#
+#
+    #
+#
+        if(!(plot.raw)){#
+            par(mfrow=c(3,2))#
+            DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01", tz='GMT')#
+                 for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab=NA, ylab=paste(colnames(DP)[i]))#
+                   }#
+#
+#
+#
+#
+    binned.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)#
+    names(binned.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")#
+     return(binned.model.output)#
+#
+#
+}#
+
+test <- bin.model.output(filelist)#
+
+# ## MODEL#
+cruise <- "DeepDOM"#
+model.output <- "/Volumes/ribalet/Cell_Division/"#
+phyto <- 'prochloro'#
+cat <- 57# number of size bin#
+filelist <- list.files(paste(model.output,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""), full.names=T)#
+#
+# filelist <- all.filelist[grep(pattern=paste(phyto), all.filelist)]#
+#
+#
+#
+bin.model.output <- function(output.files, plot.raw=TRUE){#
+#
+    require(plotrix)#
+#
+#
+    c <- 1#
+#
+    for(file in filelist){#
+        #file <- filelist[1]#
+        load(file)#
+        print(file)#
+#
+            n.proj.all <- v.hist.all  <- dr.all <- p.all <- NULL#
+#
+             for(i in seq(2,dim(model)[2],by=1)){#
+                    if(i ==2){#
+                          para <- model[1,i][[1]]#
+                        p.all <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                            dr <- model[2,i][[1]]#
+                        dr.all <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                        v.hist.all <- model[3,i][[1]]   #
+                        n.proj.all <- model[4,i][[1]]#
+#
+                    }else{#
+                    n.proj <- model[4,i][[1]]#
+                    n.proj.all <- cbind(n.proj.all, n.proj)         #
+           #
+                    dr <- model[2,i][[1]]#
+                    h.dr <- cbind(as.numeric(colnames(dr)), as.numeric(dr))#
+                    dr.all <- rbind(dr.all, h.dr)#
+                    #
+                    v.proj <- model[3,i][[1]]   #
+                    v.hist.all <- cbind(v.hist.all, v.proj)         #
+#
+                    para <- model[1,i][[1]]#
+                    param <- cbind(time=as.numeric(colnames(n.proj)), para)#
+                    p.all <- rbind(p.all, param)#
+                }#
+             }   #
+            #
+            if(c ==1){#
+                div.rate <- dr.all#
+                N.proj.all <- n.proj.all#
+                V.hist.all <- v.hist.all#
+                para.all <- p.all#
+                  #
+                }else{#
+                div.rate <- rbind(div.rate, dr.all)#
+                N.proj.all <- cbind.data.frame(N.proj.all, n.proj.all)#
+                V.hist.all <- cbind(V.hist.all, v.hist.all)#
+                para.all <- rbind(para.all, p.all)#
+                }#
+#
+            col <- rep(c, nrow(dr.all))#
+            Col <- c(Col,col)#
+#
+            if(plot.raw){#
+                    par(pty='m', mfrow=c(4,2))    #
+                    plot(as.POSIXct(div.rate[,1], origin='1970-01-01', tz='GMT'),div.rate[,2], ylab="Div Rate", xlab=NA,col=Col)#
+                    plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')#
+                    legend("topleft",legend=filelist, col=1:c, ncol=2, pch=1, bty='n')#
+                    plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"gmax"], ylab="gmax", xlab=NA,col = Col)#
+                    plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"dmax"],ylab="dmax", xlab=NA,col = Col)#
+                    plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"b"],ylab="b", xlab=NA,col = Col)#
+                    plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)#
+                    plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)#
+                    }#
+        c <- c + 1  #
+    }#
+#
+    ### ORDERING DATA by TIME#
+#
+        Div.rate <- div.rate[order(div.rate[,1]),]#
+        Nproj <- N.proj.all[,order(as.numeric(colnames(N.proj.all)))]#
+        Vproj <- V.hist.all[,order(as.numeric(colnames(V.hist.all)))]#
+        Para.all <- para.all[order(para.all[,"time"]),]#
+        #
+     #
+#
+################
+### BINNING ####
+################
+#
+        time.interval <- median(diff(as.numeric(colnames(v.proj))))#
+        time.range <- range(as.numeric(colnames(Vproj)))#
+        breaks <- seq(time.range[1],time.range[2], by= time.interval)#
+#
+    #
+    # DIVISION #
+        h <- cut(Div.rate[,1], breaks=breaks, labels=F)#
+        h.time <- round(as.vector(tapply(Div.rate[,1], h, function(x) mean(x, na.rm=T))))#
+        h.dr.mean <- as.vector(tapply(Div.rate[,2], h, function(x) mean(x, na.rm=T)))#
+        h.dr.sd <- as.vector(tapply(Div.rate[,2], h, function(x) sd(x, na.rm=T)))#
+#
+        D <- data.frame(cbind(h.time, h.dr.mean, h.dr.sd))#
+           #
+    # SIZE DISTRIBUTION#
+         Vproj.mean <- Vproj.sd <- NULL#
+                for(i in 1:nrow(Vproj)){#
+                    vhist <- cbind(as.numeric(colnames(Vproj[i,])), unlist(Vproj[i,]))#
+                    h1 <- cut(vhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(vhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.vhist.mean <- as.vector(tapply(vhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.vhist.sd <- as.vector(tapply(vhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Vproj.mean <- rbind(Vproj.mean, h1.vhist.mean)#
+                    Vproj.sd <- rbind(Vproj.sd, h1.vhist.sd)#
+                    }#
+            row.names(Vproj.mean) <-  row.names(Vproj.sd) <- row.names(Vproj)#
+            colnames(Vproj.mean) <-  colnames(Vproj.sd) <- h1.time#
+ #
+         Nproj.mean <- Nproj.sd <- NULL#
+                 for(i in 1:nrow(Nproj)){#
+                    nhist <- cbind(as.numeric(colnames(Nproj[i,])), unlist(Nproj[i,]))#
+                    h1 <- cut(nhist[,1],breaks=breaks, labels=F)#
+                    h1.time <- round(as.vector(tapply(nhist [,1], h1, function(x) mean(x, na.rm=T))))#
+                    h1.nhist.mean <- as.vector(tapply(nhist[,2], h1, function(x) mean(x, na.rm=T)))#
+                    h1.nhist.sd <- as.vector(tapply(nhist[,2], h1, function(x) sd(x, na.rm=T)))#
+                    Nproj.mean <- rbind(Nproj.mean, h1.nhist.mean)#
+                    Nproj.sd <- rbind(Nproj.sd, h1.nhist.sd)#
+                    }#
+            row.names(Nproj.mean) <-  row.names(Nproj.sd) <- row.names(Nproj)#
+            colnames(Nproj.mean) <-  colnames(Nproj.sd) <- h1.time#
+#
+#
+#
+#
+#
+    # PARAMETERS    #
+        h2 <- cut(Para.all[,"time"], breaks=breaks)#
+        h2.time <- round(as.vector(tapply(Para.all[,"time"], h2, function(x) mean(x, na.rm=T))))#
+        h2.gmax.mean <- as.vector(tapply(Para.all[,"gmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.dmax.mean <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) mean(x, na.rm=T)))#
+        h2.b.mean <- as.vector(tapply(Para.all[,"b"], h2, function(x) mean(x, na.rm=T)))#
+        h2.E_star.mean <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) mean(x, na.rm=T)))#
+        h2.resnorm.mean <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) mean(x, na.rm=T)))#
+        h2.gmax.sd <- as.vector(tapply(Para.all[,"gmax"], h2,function(x) sd(x, na.rm=T)))#
+        h2.dmax.sd <- as.vector(tapply(Para.all[,"dmax"], h2, function(x) sd(x, na.rm=T)))#
+        h2.b.sd <- as.vector(tapply(Para.all[,"b"], h2, function(x) sd(x, na.rm=T)))#
+        h2.E_star.sd <- as.vector(tapply(Para.all[,"E_star"], h2, function(x) sd(x, na.rm=T)))#
+        h2.resnorm.sd <- as.vector(tapply(Para.all[,"resnorm"], h2, function(x) sd(x, na.rm=T)))#
+        h2.time <- as.POSIXct(h2.time,origin="1970-01-01",tz='GMT')#
+     #
+         P <- data.frame(h2.time,h2.resnorm.mean,h2.resnorm.sd,h2.E_star.mean,h2.E_star.sd, #
+                            h2.gmax.mean,h2.gmax.sd, h2.dmax.mean,h2.dmax.sd, h2.b.mean,h2.b.sd)#
+#
+        DP <- merge(D, P, by.x=c("h.time"), by.y= c("h2.time"),all=T)#
+#
+#
+#
+    #
+#
+        if(!(plot.raw)){#
+            par(mfrow=c(3,2))#
+            DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01", tz='GMT')#
+                 for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab=NA, ylab=paste(colnames(DP)[i]))#
+                   }#
+#
+#
+#
+#
+    binned.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)#
+    names(binned.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")#
+     return(binned.model.output)#
+#
+#
+}#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+plot.model.parameters <- function(binned.model.output){#
+#
+        volbins <- unique(as.numeric(row.names(Vproj)))#
+#
+        par(mfrow=c(3,2))#
+            for(p in c("h2.resnorm","h2.E_star","h2.gmax","h2.dmax","h2.a","h2.b")){#
+                plotCI(P$h2.time, P[,paste(p,'.mean',sep="")], P[,paste(p,'.sd',sep="")], col=NA, ylab=NA, main=paste(p))#
+                abline(v=night$UNIXtime,col='lightgrey')#
+                plotCI(P$h2.time, P[,paste(p,'.mean',sep="")], P[,paste(p,'.sd',sep="")],add=T)#
+            }#
+    #
+#
+        del <- matrix(nrow=length(h2.time), ncol=cat)#
+        for(i in 1:cat){#
+            del[,i] <- h2.dmax.mean * (h2.a.mean*volbins[i])^h2.b.mean/ (1 + (h2.a.mean*volbins[i])^h2.b.mean)#
+#
+            }#
+        #
+      par(mfrow=c(2,1),mar=c(4,4,4,4), las=1)#
+        plot(volbins, del[1,], ylim=c(0,0.6), type='l', col="#00007F", lwd=2, xlab="Cell volume", ylab=paste("Delta (per",10,"min)"))#
+                for(i in 2:nrow(del))   points(volbins, del[i,], type='l', col=jet.colors(nrow(del))[cut(as.numeric(h2.time),nrow(del))][i], lwd=2)#
+            ylim <- par('usr')[c(3,4)]#
+            xlim <- par('usr')[c(1,2)]#
+            color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(pretty(h2.time),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')#
+#
+#
+        plot(seq(0,1000,by=10),h2.gmax.mean[1]*(1-exp(-seq(0,1000,by=10)/h2.E_star.mean[1])), ylim=c(0,0.3),type='l', col="#00007F", lwd=2, xlab="Light Intensity", ylab=paste("Gamma (per",10,"min)"))#
+                for(i in 1:length(h2.time)) points(seq(0,1000,by=10),h2.gmax.mean[i]*(1-exp(-seq(0,1000,by=10)/h2.E_star.mean[i])),type='l',col=jet.colors(nrow(del))[cut(as.numeric(h2.time),length(h2.time))][i],lwd=2)#
+                    ylim <- par('usr')[c(3,4)]#
+                    xlim <- par('usr')[c(1,2)]#
+            color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(pretty(h2.time),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')#
+#
+    }#
+    head#
+    #
+
+test <- bin.model.output(filelist)#
+#
+
