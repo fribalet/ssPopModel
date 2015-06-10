@@ -6,7 +6,7 @@
 
 
 
-matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
+.matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 	
 		########################
 		## INITIAL PARAMETERS ##
@@ -92,14 +92,14 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 
 	
 
-	sigma.lsq <- function(params, Einterp, N.dist, V.hists, TotN, volbins){
+	.sigma.lsq <- function(params, Einterp, N.dist, V.hists, TotN, volbins){
 				
 				res <- which(diff(as.numeric(colnames(V.hists))) == 60*time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
 				dim <- dim(N.dist)
 				sigma <- matrix(NA, dim[1], dim[2]-1) # preallocate sigma
 			
 			for(hr in res){
-					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]))	
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]))	
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution 
 					
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
@@ -122,7 +122,7 @@ matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star){
 
 
 	
-determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
+.determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		
 		require(DEoptim)
 
@@ -149,7 +149,7 @@ determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		##################
 		print("Optimizing model parameters")
 		
-		f <- function(params) sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, TotN=TotN, volbins=volbins)
+		f <- function(params) .sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, TotN=TotN, volbins=volbins)
 			
 		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1), upper=c(1,1,15,max(Einterp)), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100))
 		
@@ -171,7 +171,7 @@ determine.opt.para <- function(V.hists,N.dist,Edata,volbins){
 		mu_N <- matrix(nrow=1,ncol=dim(V.hists)[2])
 
 		for(hr in res){
-					B <- matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, b=b, E_star=E_star,dmax=dmax)
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, b=b, E_star=E_star,dmax=dmax)
 					Nproj[,hr+1] <- round(B %*% Nproj[,hr]) # calculate numbers of individuals
 					Vproj[,hr+1] <- B %*% Vproj[,hr] # calculate the projected size-frequency distribution
 					Vproj[,hr+1] <- Vproj[,hr+1]/sum(Vproj[,hr+1]) # normalize distribution

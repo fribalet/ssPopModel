@@ -1,5 +1,5 @@
 
-run.ssPopModel <- function(distribution, Par, time.delay=0, resol=10){
+run.ssPopModel <- function(distribution, Par, time.delay=0, dt=10){
 
 	jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow",	"#FF7F00", "red", "#7F0000"))
 
@@ -11,7 +11,7 @@ run.ssPopModel <- function(distribution, Par, time.delay=0, resol=10){
 		##################
 	
 	            t <- as.numeric(time.delay)
-		resol <- as.numeric(resol)
+		resol <- as.numeric(dt)
 
 		Vhists <- distribution[[1]]
 		Vhists <- sweep(Vhists, 2, colSums(Vhists), '/') # Normalize each column of VHists to 1
