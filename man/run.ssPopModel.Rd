@@ -7,11 +7,11 @@ For more details on the matrix population model, see Ribalet et al. Light-driven
 }
 
 \usage{
-run.ssPopModel(distribution, Par, time.delay=0,  dt=10)
+run.ssPopModel(path.distribution, Par, time.delay=0,  dt=10)
 }
 
 \arguments{
-\item{distribution}{size distribution object generated from the size.distribution function. }
+\item{path.distribution}{Path to the size distribution object generated from the size.distribution function.}
 \item{Par}{The Photosynthetic Active Radiation data. The dataframe must include a column named time that contains data with the following time format: Y-m-d H:M:S}
 \item{time.delay}{the time delay (in hour) of the 24-hr simulation with respect to the first data point of the size distribution. Value can range from 0 to 24.}
 \item{dt}{The projection matrix gives the fraction of cells in size class j at time t that become cells in size class i at time t+dt. Since the model allows a cell to undergo only one transition from one size to another, dt must be low. Default value is set dt =10, similar to the original model}
@@ -22,11 +22,11 @@ A projection matrix, estimates of division rates and the values of the 4 paramet
 }
 
 \examples{
-# Par <- read.csv('/Volumes/seaflow/SCOPE_1/Par_SCOPE_1.csv')
+Par.path <- system.file("extdata", "Par.csv", package="ssPopModel")
+Par <- read.csv(Par.path)
 
-# distribution <- load('/Volumes/seaflow/SCOPE_1/prochloro_dist_Ncat57_SCOPE_1')
+path.distribution <- system.file("extdata", "prochloro_distribution", package="ssPopModel")
+time.delay <- 0 # time.delay (in hour) set the start of the time series with respect to t0
 
-# time.delay <- 0 # time.delay (in hour) set the start of the time series with respect to t0
-
-# model <- run.ssPopModel(distribution, Par, time.delay) 
+model <- run.ssPopModel(path.distribution, Par, time.delay) 
 }

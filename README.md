@@ -27,11 +27,15 @@ Here is a quick tutorial to get you started (a more detailed tutorial is in prog
 2. Run the model
  ```r
  # The model need the Photosynthetic Active Radiation in order to estimate the growth rate
- Par <- read.csv('/Volumes/seaflow/SCOPE_1/Par_SCOPE_1.csv')
- distribution <- load('/Volumes/seaflow/SCOPE_1/prochloro_dist_Ncat57_SCOPE_1')
+ Par.path <- system.file("extdata", "Par.csv", package="ssPopModel")
+ Par <- read.csv(Par.path)
+
+ path.distribution <- system.file("extdata", "prochloro_distribution", package="ssPopModel")
+
+
  time.delay <- 0 # time.delay (in hour) set the start of the time series with respect to t0
 
- model <- run.ssPopModel(distribution, Par, time.delay) 
+ model <- run.ssPopModel(path.distribution, Par, time.delay) 
  ```
 
 3. Merge data output

@@ -20,8 +20,8 @@ A size distribution made of two dimensions, for frequency and counts of the size
 }
 
 \examples{
-### Select the opp data
-# popcycle.location <- system.file("extdata", package="ssPopModel")
+### Select the location of the SeaFlow database
+popcycle.location <- "/Volumes/seaflow/SCOPE_1"
 
 ### Below is an example to create hourly-binned size distribution of 57 size classes for Prochlorococcus  
 # dist <- size.distribution(popcycle.location, popname = 'prochloro', param="fsc_small", n.breaks=57, time.interval = 60)

@@ -1,5 +1,5 @@
 
-run.ssPopModel <- function(distribution, Par, time.delay=0, dt=10){
+run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 
 	jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow",	"#FF7F00", "red", "#7F0000"))
 
@@ -9,7 +9,7 @@ run.ssPopModel <- function(distribution, Par, time.delay=0, dt=10){
 		##################
 		### PARAMTERS ###
 		##################
-	
+		load(path.distribution)
 	            t <- as.numeric(time.delay)
 		resol <- as.numeric(dt)
 
@@ -82,7 +82,7 @@ run.ssPopModel <- function(distribution, Par, time.delay=0, dt=10){
 		Edata <- as.matrix(cbind(pEdata$x, pEdata$y))
 
 	### RUN size.class.model_functions
-		proj <- try(determine.opt.para(V.hists=V.hists,N.dist=N.dist,Edata=Edata,volbins=volbins))
+		proj <- try(.determine.opt.para(V.hists=V.hists,N.dist=N.dist,Edata=Edata,volbins=volbins))
 		
 		if(class(proj) !='try-error'){
 		model <- matrix(cbind(as.array(model), as.array(proj)), nrow=4,ncol=ncol(model)+1)
