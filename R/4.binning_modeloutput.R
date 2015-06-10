@@ -1,19 +1,14 @@
-# ## MODEL
-cruise <- "DeepDOM"
-model.output <- "/Volumes/ribalet/Cell_Division/"
-phyto <- 'prochloro'
-cat <- 57# number of size bin
-filelist <- list.files(paste(model.output,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""), full.names=T)
+# cruise <- "DeepDOM"
+# model.output <- "/Volumes/ribalet/Cell_Division/"
+# phyto <- 'prochloro'
+# cat <- 57# number of size bin
+# filelist <- list.files(paste(model.output,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""), full.names=T)
 
-# filelist <- all.filelist[grep(pattern=paste(phyto), all.filelist)]
-
-
-
-bin.model.output <- function(output.files, plot.raw=TRUE){
+merge.model.output <- function(output.files, plot.raw=TRUE){
 
     require(plotrix)
 
-
+    Col <- NULL
     c <- 1
 
     for(file in filelist){
@@ -24,13 +19,14 @@ bin.model.output <- function(output.files, plot.raw=TRUE){
             n.proj.all <- v.hist.all  <- dr.all <- p.all <- NULL
 
              for(i in seq(2,dim(model)[2],by=1)){
-                    if(i ==2){
-                          para <- model[1,i][[1]]
-                        p.all <- cbind(time=as.numeric(colnames(n.proj)), para)
-                            dr <- model[2,i][[1]]
-                        dr.all <- cbind(as.numeric(colnames(dr)), as.numeric(dr))
+                    if(i == 2){
                         v.hist.all <- model[3,i][[1]]   
                         n.proj.all <- model[4,i][[1]]
+                          para <- model[1,i][[1]]
+                        p.all <- cbind(time=as.numeric(colnames(n.proj.all)), para)
+                            dr <- model[2,i][[1]]
+                        dr.all <- cbind(as.numeric(colnames(dr)), as.numeric(dr))
+
 
                     }else{
                     n.proj <- model[4,i][[1]]
@@ -91,6 +87,7 @@ bin.model.output <- function(output.files, plot.raw=TRUE){
 ###############
 ### BINNING ###
 ###############
+        print('merging model outputs...')
 
         time.interval <- median(diff(as.numeric(colnames(v.proj))))
         time.range <- range(as.numeric(colnames(Vproj)))
@@ -169,10 +166,10 @@ bin.model.output <- function(output.files, plot.raw=TRUE){
 
 
 
-    binned.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)
-    names(binned.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")
+    merged.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)
+    names(merged.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")
     
-    return(binned.model.output)
+    return(merged.model.output)
 
 
 }
@@ -181,48 +178,34 @@ bin.model.output <- function(output.files, plot.raw=TRUE){
 
 
 
+plot.parameters <- function(merged.model.output){
 
+    jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 
-
-
-
-
-
-
-
-# plot.model.parameters <- function(binned.model.output){
-
-#         volbins <- unique(as.numeric(row.names(Vproj)))
-
-#         par(mfrow=c(3,2))
-#             for(p in c("h2.resnorm","h2.E_star","h2.gmax","h2.dmax","h2.a","h2.b")){
-#                 plotCI(P$h2.time, P[,paste(p,'.mean',sep="")], P[,paste(p,'.sd',sep="")], col=NA, ylab=NA, main=paste(p))
-#                 abline(v=night$UNIXtime,col='lightgrey')
-#                 plotCI(P$h2.time, P[,paste(p,'.mean',sep="")], P[,paste(p,'.sd',sep="")],add=T)
-#             }
-    
-
-#         del <- matrix(nrow=length(h2.time), ncol=cat)
-#         for(i in 1:cat){
-#             del[,i] <- h2.dmax.mean * (h2.a.mean*volbins[i])^h2.b.mean/ (1 + (h2.a.mean*volbins[i])^h2.b.mean)
-
-#             }
+        volbins <- unique(as.numeric(row.names(merged.model.output$Vproj)))
+        para <- binned.model.output$estimates
+        h2.time <- para$h.time
+       del <- matrix(nrow=length(h2.time), ncol=cat)
         
-#       par(mfrow=c(2,1),mar=c(4,4,4,4), las=1)
-#         plot(volbins, del[1,], ylim=c(0,0.6), type='l', col="#00007F", lwd=2, xlab="Cell volume", ylab=paste("Delta (per",10,"min)"))
-#                 for(i in 2:nrow(del))   points(volbins, del[i,], type='l', col=jet.colors(nrow(del))[cut(as.numeric(h2.time),nrow(del))][i], lwd=2)
-#             ylim <- par('usr')[c(3,4)]
-#             xlim <- par('usr')[c(1,2)]
-#             color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(pretty(h2.time),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')
+        for(i in 1:cat)  del[,i] <- para$h2.dmax.mean * (volbins[i]/max(volbins))^para$h2.b.mean/ (1 + (volbins[i]/max(volbins))^para$h2.b.mean)
 
+            
+        
+      par(mfrow=c(2,1),mar=c(4,4,4,4), las=1)
+        plot(volbins, del[1,], ylim=c(0,max(del, na.rm=T)), type='l', col="#00007F", lwd=2, xlab="Cell volume", ylab=paste("Delta (per",10,"min)"))
+                for(i in 2:nrow(del))   points(volbins, del[i,], type='l', col=jet.colors(nrow(del))[cut(as.numeric(h2.time),nrow(del))][i], lwd=2)
+            ylim <- par('usr')[c(3,4)]
+            xlim <- par('usr')[c(1,2)]
+            color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(pretty(h2.time),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')
 
-#         plot(seq(0,1000,by=10),h2.gmax.mean[1]*(1-exp(-seq(0,1000,by=10)/h2.E_star.mean[1])), ylim=c(0,0.3),type='l', col="#00007F", lwd=2, xlab="Light Intensity", ylab=paste("Gamma (per",10,"min)"))
-#                 for(i in 1:length(h2.time)) points(seq(0,1000,by=10),h2.gmax.mean[i]*(1-exp(-seq(0,1000,by=10)/h2.E_star.mean[i])),type='l',col=jet.colors(nrow(del))[cut(as.numeric(h2.time),length(h2.time))][i],lwd=2)
-#                     ylim <- par('usr')[c(3,4)]
-#                     xlim <- par('usr')[c(1,2)]
-#             color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(pretty(h2.time),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')
+         max <- max(para$h2.gmax.mean*(1-exp(-1000)/para$h2.E_star.mean), na.rm=T)
+        plot(seq(0,1000,by=10),para$h2.gmax.mean[1]*(1-exp(-seq(0,1000,by=10)/para$h2.E_star.mean[1])), ylim=c(0,max),type='l', col="#00007F", lwd=2, xlab="Light Intensity", ylab=paste("Gamma (per",10,"min)"))
+                for(i in 1:length(h2.time)) points(seq(0,1000,by=10),para$h2.gmax.mean[i]*(1-exp(-seq(0,1000,by=10)/para$h2.E_star.mean[i])),type='l',col=jet.colors(nrow(del))[cut(as.numeric(h2.time),length(h2.time))][i],lwd=2)
+                    ylim <- par('usr')[c(3,4)]
+                    xlim <- par('usr')[c(1,2)]
+            color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(pretty(h2.time),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')
 
-#     }
+    }
 
 
 

@@ -132,30 +132,17 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 #########################
 ### SHOW size distribution ###
 #########################
-plot.size.distribution <- function(distribution, dim=c(1,2), mode = c('log', 'lin')){
+plot.size.distribution <- function(distribution, mode = c('log', 'lin')){
 
     require(rgl)
     jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 
-    dim <- as.numeric(dim[1])
     mode <- as.character(mode[1])
 
-    param <- distribution[[dim]]
+    param <- distribution
     percentile <- cut(unlist(param), 100)
 
     # in linear scale
