@@ -14,7 +14,6 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 		resol <- as.numeric(dt)
 
 		Vhists <- distribution[[1]]
-		Vhists <- sweep(Vhists, 2, colSums(Vhists), '/') # Normalize each column of VHists to 1
 		N_dist <- distribution[[2]]
 		volbins <- as.numeric(row.names(Vhists))
 			
@@ -25,7 +24,7 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 		## Define the time series
 		# t <- 1 
 		time.range <- range(as.numeric(colnames(Vhists)))
-		time.interval <- unique(diff(as.numeric(colnames(Vhists))))
+		time.interval <- median(diff(as.numeric(colnames(Vhists))))
 		days <- as.POSIXct(seq(time.range[1]+t*60*60,time.range[2]+t*60*60 , by=time.interval*24),origin="1970-01-01", tz="GMT") # cut the time series according to time interval
 
 		print(paste("Number of days in the dataset:",length(days)))
@@ -82,7 +81,7 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 		Edata <- as.matrix(cbind(pEdata$x, pEdata$y))
 
 	### RUN size.class.model_functions
-		proj <- try(.determine.opt.para(V.hists=V.hists,N.dist=N.dist,Edata=Edata,volbins=volbins))
+		proj <- try(.determine.opt.para(V.hists=V.hists,N.dist=N.dist,Edata=Edata, resol=resol))
 		
 		if(class(proj) !='try-error'){
 		model <- matrix(cbind(as.array(model), as.array(proj)), nrow=4,ncol=ncol(model)+1)
