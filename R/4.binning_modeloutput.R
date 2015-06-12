@@ -166,10 +166,10 @@ merge.model.output <- function(output.files, plot.raw=TRUE){
 
 
 
-    merged.model.output <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)
-    names(merged.model.output) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")
+    merged.estimates <- list(DP, Vproj.mean, Nproj.mean, Vproj.sd, Nproj.sd)
+    names(merged.estimates) <- c("estimates","Vproj","Nproj","Vproj.sd", "Nproj.sd")
     
-    return(merged.model.output)
+    return(merged.estimates)
 
 
 }
@@ -178,14 +178,15 @@ merge.model.output <- function(output.files, plot.raw=TRUE){
 
 
 
-plot.parameters <- function(merged.model.output){
+plot.parameters <- function(merged.estimates){
 
     jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 
-        volbins <- unique(as.numeric(row.names(merged.model.output$Vproj)))
-        para <- binned.model.output$estimates
+        volbins <- unique(as.numeric(row.names(merged.estimates$Vproj)))
+        para <- merged.estimates$estimates
         h2.time <- para$h.time
-       del <- matrix(nrow=length(h2.time), ncol=cat)
+        cat <- length(volbins)
+        del <- matrix(nrow=length(h2.time), ncol=cat)
         
         for(i in 1:cat)  del[,i] <- para$h2.dmax.mean * (volbins[i]/max(volbins))^para$h2.b.mean/ (1 + (volbins[i]/max(volbins))^para$h2.b.mean)
 
@@ -196,14 +197,14 @@ plot.parameters <- function(merged.model.output){
                 for(i in 2:nrow(del))   points(volbins, del[i,], type='l', col=jet.colors(nrow(del))[cut(as.numeric(h2.time),nrow(del))][i], lwd=2)
             ylim <- par('usr')[c(3,4)]
             xlim <- par('usr')[c(1,2)]
-            color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(pretty(h2.time),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')
+            color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(range(h2.time, na.rm=T),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')
 
          max <- max(para$h2.gmax.mean*(1-exp(-1000)/para$h2.E_star.mean), na.rm=T)
         plot(seq(0,1000,by=10),para$h2.gmax.mean[1]*(1-exp(-seq(0,1000,by=10)/para$h2.E_star.mean[1])), ylim=c(0,max),type='l', col="#00007F", lwd=2, xlab="Light Intensity", ylab=paste("Gamma (per",10,"min)"))
                 for(i in 1:length(h2.time)) points(seq(0,1000,by=10),para$h2.gmax.mean[i]*(1-exp(-seq(0,1000,by=10)/para$h2.E_star.mean[i])),type='l',col=jet.colors(nrow(del))[cut(as.numeric(h2.time),length(h2.time))][i],lwd=2)
                     ylim <- par('usr')[c(3,4)]
                     xlim <- par('usr')[c(1,2)]
-            color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(pretty(h2.time),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')
+            color.legend(xlim[2]- diff(xlim)/40 , ylim[1], xlim[2], ylim[2], legend=format(as.POSIXct(range(h2.time, na.rm=T),origin="1970-01-01"),"%d %b"), rect.col=jet.colors(100), gradient='y',align='rb')
 
     }
 
