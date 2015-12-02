@@ -26,7 +26,7 @@ Here is a quick tutorial to get you started (a more detailed tutorial is in prog
 
 2. Run the model
  ```r
- # The model need the Photosynthetic Active Radiation in order to estimate the growth rate
+ # The model needs the Photosynthetic Active Radiation in order to estimate the growth rate. Here is an example:
  Par.path <- system.file("extdata", "Par.csv", package="ssPopModel")
  Par <- read.csv(Par.path)
 
