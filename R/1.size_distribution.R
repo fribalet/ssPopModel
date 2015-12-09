@@ -100,10 +100,7 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
            if(popname == "synecho" | popname == "pico" | popname == "prochloro"){
                 volbins <- round(10^(0.524*log10(norm.fsc) + 0.283),3)
                 # Size$volume <- 10^(0.5*log10(Size$stages/Size$fsc_beads))# MIE THEORY
-                }
-            
-          
-            if(popname == "crypto" | popname =='nano'){
+                }else{
               #Size$volume <- 10^(0.75*log10(Size$stages/Size$fsc_beads)) # MIE THEORY
               volbins <- round(10^(1.2384*log10(norm.fsc) + 1.003),3)
             }
