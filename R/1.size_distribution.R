@@ -21,7 +21,7 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
         time.range <- range(phyto.stat$time)
         time <- seq(time.range[1],time.range[2] , by=60*time.interval) # cut the time series according to time interval
 
-        # Get the range of 'param' for 'phyto' 
+        # Get the range of 'param' for 'phyto'
         print(paste("obtaining the range in", param, "for", popname, 'be patient, this can take several minutes depending of the amount of particles'))
         param.phyto <- get.opp.by.date(time.range[1], time.range[2], pop=popname, channel=param)
         param.range <- range(param.phyto[,param])
@@ -62,7 +62,7 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
         for( t in time){
 
              message(round(100*i/length(time)), "% completed \r", appendLF=FALSE)
-          
+
             tryCatch({
             #get the opp for phyto
             t <- as.POSIXct(t, origin="1970-01-01", tz='GMT')
@@ -73,7 +73,7 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
                 }
 
             # get Beads signal
-                
+
             # get opp/evt ratio (used to calculate Ndist)
           ## opp.evt.ratio <- median(get.opp.evt.ratio.by.date(t, t+60*time.interval)$ratio)
 
@@ -94,7 +94,7 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
 
         #################################################################
         ### CONVERT normalized forward SCATTER by 1 micron beads to VOLUME ###
-        #################################################################       
+        #################################################################
         print(paste("converting", param, "into volume"))
         norm.fsc <- 2^dens$x
            if(popname == "synecho" | popname == "pico" | popname == "prochloro"){
@@ -104,7 +104,7 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
               #Size$volume <- 10^(0.75*log10(Size$stages/Size$fsc_beads)) # MIE THEORY
               volbins <- round(10^(1.2384*log10(norm.fsc) + 1.003),3)
             }
-          
+
 
 
         ####################
@@ -113,12 +113,12 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
 
         colnames(Vhist) <- colnames(Ndist) <- as.character(Time)
         rownames(Vhist) <- rownames(Ndist) <- volbins
-           
+
         distribution <- list()
             distribution[[1]] <- Vhist
             distribution[[2]] <- Ndist
 
-         print("done")   
+         print("done")
         return(distribution)
 
         }
@@ -132,7 +132,7 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
 #########################
 ### SHOW size distribution ###
 #########################
-plot.size.distribution <- function(distribution, mode = c('log', 'lin')){
+plot.size.distribution <- function(distribution, mode = c('log', 'lin'), ...){
 
     require(rgl)
     jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
@@ -144,19 +144,18 @@ plot.size.distribution <- function(distribution, mode = c('log', 'lin')){
 
     # in linear scale
     if(mode =='lin'){
-        plot3d(rep(as.numeric(row.names(param)), dim(param)[2]), 
-                rep(as.numeric(colnames(param)), each=dim(param)[1]) , 
-                unlist(param), 
-                col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
+        plot3d(rep(as.numeric(row.names(param)), dim(param)[2]),
+                rep(as.numeric(colnames(param)), each=dim(param)[1]) ,
+                unlist(param),
+                col=jet.colors(100)[percentile], xlab="size class", ylab="time", zlab="Frequency", ...)
      }
 
 
     # in log scale
     if(mode =='log'){
-        plot3d(log2(rep(as.numeric(row.names(param)), dim(param)[2])), 
-                rep(as.numeric(colnames(param)), each=dim(param)[1]) , 
-                unlist(param), 
-                col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
+        plot3d(log2(rep(as.numeric(row.names(param)), dim(param)[2])),
+                rep(as.numeric(colnames(param)), each=dim(param)[1]) ,
+                unlist(param),
+                col=jet.colors(100)[percentile],  xlab="size class", ylab="time", zlab="Frequency", ...)
     }
 }
-
