@@ -5,31 +5,34 @@
 # time.interval <- 60 #minutes
 
 
-#################################
+############################################
 ### Get the range of 'param' for 'phyto' ###
-#################################
-size.distribution <- function(popcycle.location, popname, param="fsc_small", n.breaks=57, time.interval = 60){
+############################################
+
+size.distribution <- function(db, opp.dir, vct.dir, popname, param="fsc_small", n.breaks=57, time.interval = 60){
 
     require(popcycle)
 
         # Get the time range
         print("getting the stat table from the database")
-        set.project.location(popcycle.location)
-        stat <- get.stat.table()
-        phyto.stat <- subset(stat, pop == popname)
-        phyto.stat$time <- as.POSIXct(phyto.stat$time,format="%FT%T",tz='GMT')
+        stat <- get.stat.table(db)
+        stat$time <- as.POSIXct(stat$time,format="%FT%T",tz='GMT')
+
+          if(is.null(popname)){phyto.stat <- stat
+              }else{phyto.stat <- subset(stat, pop == popname)}
+
         time.range <- range(phyto.stat$time)
         time <- seq(time.range[1],time.range[2] , by=60*time.interval) # cut the time series according to time interval
 
         # Get the range of 'param' for 'phyto'
-        print(paste("obtaining the range in", param, "for", popname, 'be patient, this can take several minutes depending of the amount of particles'))
-        param.phyto <- get.opp.by.date(time.range[1], time.range[2], pop=popname, channel=param)
-        param.range <- range(param.phyto[,param])
+        print(paste("obtaining the range in", param, "for", popname))
+        param.phyto <- get.vct.stats.by.date(db, time.range[1], time.range[2])
 
+          if(is.null(popname)){param.phyto <- subset(param.phyto, pop!='beads')
+              }else{param.phyto <- subset(param.phyto, pop==popname)}
 
-        #########################
-        ### SMOOTH bead signal  ###
-        #########################
+        param.range <- c(mean(param.phyto[,paste(param, "_min")]), mean(param.phyto[,paste(param, "_max")]))
+
 
         # Get the beads data
          print(paste("obtaining the median ", param, "of beads for normalization"))
@@ -66,7 +69,7 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
             tryCatch({
             #get the opp for phyto
             t <- as.POSIXct(t, origin="1970-01-01", tz='GMT')
-            pop <- try(get.opp.by.date(t, t+60*time.interval, pop=popname, channel=param))
+            pop <- try(get.opp.by.date(db, opp.dir, t, t+60*time.interval, channel=param, vct.dir=vct.dir, pop=popname))
 
             if(class(pop) == "try-error" | nrow(pop) < 10){
                 next
@@ -92,26 +95,19 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
         }
 
 
-        #################################################################
+        ######################################################################
         ### CONVERT normalized forward SCATTER by 1 micron beads to VOLUME ###
-        #################################################################
+        ######################################################################
         print(paste("converting", param, "into volume"))
         norm.fsc <- 2^dens$x
-           if(popname == "synecho" | popname == "pico" | popname == "prochloro"){
-                volbins <- round(10^(0.524*log10(norm.fsc) + 0.283),3)
-                # Size$volume <- 10^(0.5*log10(Size$stages/Size$fsc_beads))# MIE THEORY
-                }else{
-              #Size$volume <- 10^(0.75*log10(Size$stages/Size$fsc_beads)) # MIE THEORY
-              #volbins <- round(10^(1.2384*log10(norm.fsc) + 1.003),3)
-              volbins <- round(10^(0.404*log10(norm.fsc)^2 + 1.802*log10(norm.fsc) + 1.174),3)
-
-            }
+        if(popname == "synecho" | popname == "prochloro"){volbins <- round(10^(0.524*log10(norm.fsc) + 0.283),3)
+          }else{volbins <- round(10^(0.404*log10(norm.fsc)^2 + 1.802*log10(norm.fsc) + 1.174),3)}
 
 
 
-        ####################
+        #######################
         ### SAVE the output ###
-        ####################
+        #######################
 
         colnames(Vhist) <- colnames(Ndist) <- as.character(Time)
         rownames(Vhist) <- rownames(Ndist) <- volbins
@@ -131,9 +127,9 @@ size.distribution <- function(popcycle.location, popname, param="fsc_small", n.b
 
 
 
-#########################
-### SHOW size distribution ###
-#########################
+##############################
+### PLOT size distribution ###
+##############################
 plot.size.distribution <- function(distribution, mode = c('log', 'lin'), ...){
 
     require(rgl)
