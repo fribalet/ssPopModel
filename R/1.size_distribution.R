@@ -14,8 +14,9 @@ size.distribution <- function(db, opp.dir, vct.dir, popname, param="fsc_small", 
     require(popcycle)
 
         # Get the time range
-        print("getting the stat table from the database")
-        stat <- get.stat.table(db)
+        #print("getting the stat table from the database")
+        stat <- get.stat.table(db, flag=TRUE)
+        try(stat <- subset(stat, flag ==0), silent=T)
         stat$time <- as.POSIXct(stat$time,format="%FT%T",tz='GMT')
 
           if(is.null(popname)){phyto.stat <- stat
@@ -25,18 +26,18 @@ size.distribution <- function(db, opp.dir, vct.dir, popname, param="fsc_small", 
         time <- seq(time.range[1],time.range[2] , by=60*time.interval) # cut the time series according to time interval
 
         # Get the range of 'param' for 'phyto'
-        print(paste("obtaining the range in", param, "for", popname))
+        #print(paste("obtaining the range in", param, "for", popname))
         param.phyto <- get.vct.stats.by.date(db, time.range[1], time.range[2])
 
           if(is.null(popname)){param.phyto <- subset(param.phyto, pop!='beads')
               }else{param.phyto <- subset(param.phyto, pop==popname)}
 
-        param.range <- c(mean(param.phyto[,paste(param, "_min")]), mean(param.phyto[,paste(param, "_max")]))
+        param.range <- c(mean(param.phyto[,paste0(param, "_min")]), mean(param.phyto[,paste0(param, "_max")]))
 
 
         # Get the beads data
-         print(paste("obtaining the median ", param, "of beads for normalization"))
-         m.beads <- median(subset(stat, pop =='beads' & time > time.range[1] & time < time.range[2])[,param])
+        # print(paste("obtaining the median ", param, "of beads for normalization"))
+         m.beads <- median(subset(stat, pop =='beads' & time > time.range[1] & time < time.range[2])[,paste0(param, "_mean")])
         # Plot the light scattering of beads over time
         # plot.time(stat, popname='beads',param='fsc_small', ylim=c(1, 10^3.5))
         # abline(h=m.beads, col=2, lwd=3)
@@ -64,12 +65,15 @@ size.distribution <- function(db, opp.dir, vct.dir, popname, param="fsc_small", 
         Vhist <- Ndist  <- Time <- NULL
         for( t in time){
 
+            # t <- time[1]
              message(round(100*i/length(time)), "% completed \r", appendLF=FALSE)
 
             tryCatch({
             #get the opp for phyto
             t <- as.POSIXct(t, origin="1970-01-01", tz='GMT')
-            pop <- try(get.opp.by.date(db, opp.dir, t, t+60*time.interval, channel=param, vct.dir=vct.dir, pop=popname))
+            opp.list <- subset(stat, pop== popname & flag==0 & time >=t & time < t+60*time.interval)$file
+
+            pop <- try(get.opp.by.file(opp.dir, opp.list, vct.dir=vct.dir, pop=popname, channel=param))
 
             if(class(pop) == "try-error" | nrow(pop) < 10){
                 next
