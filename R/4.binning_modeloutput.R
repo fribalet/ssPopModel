@@ -1,4 +1,4 @@
-# cruise <- "DeepDOM"
+# cruise <- "SCOPE_10"
 # model.output <- "/Volumes/ribalet/Cell_Division/"
 # phyto <- 'prochloro'
 # cat <- 57# number of size bin
@@ -72,6 +72,8 @@ merge.model.output <- function(output.files, plot.raw=TRUE){
                     plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"b"],ylab="b", xlab=NA,col = Col)
                     plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)
                     plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)
+
+                    readline("Clic RETURN to see the next iteration")
                     }
         c <- c + 1
     }
@@ -90,7 +92,7 @@ merge.model.output <- function(output.files, plot.raw=TRUE){
 ###############
         print('merging model outputs...')
 
-        time.interval <- median(diff(as.numeric(colnames(v.proj))))
+        time.interval <- median(diff(as.numeric(colnames(v.hist.all))))
         time.range <- range(as.numeric(colnames(Vproj)))
         breaks <- seq(time.range[1],time.range[2], by= time.interval)
 

@@ -1,7 +1,7 @@
 Package: ssPopModel
 Title: ssPopModel: a size-structured matrix population model implemented in R
-Version: 1.0.1
-Date: 2015-06-06
+Version: 1.1.0
+Date: 2016-11-10
 Author: Francois Ribalet
 Maintainer: Francois Ribalet <ribalet@uw.edu>
 Description: ssPopModel is a R package that uses size-structured matrix population model to estimate hourly division rates of microbial populations using flow cytometry data. 
