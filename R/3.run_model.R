@@ -63,7 +63,7 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 				print(paste("Not enough data point, skipping to the next 24-h period"))
 				next
 				}
-			if(dim(V.hists)[2]  < 12){
+			if(dim(V.hists)[2]  < 16){
 				print(paste("Not enough data point, skipping to the next 24-h period"))
 				next
 				}
