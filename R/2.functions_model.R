@@ -7,37 +7,37 @@
 
 
 .matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star, resol){
-	
+
 		########################
 		## INITIAL PARAMETERS ##
 		########################
-		t.nodiv <- 0 # # no division during the first X hours after dawn 
+		t.nodiv <- 0 # # no division during the first X hours after dawn
 		dt <- resol/60
 		j <- findInterval(2 * volbins[1], volbins)
 		m <- length(volbins) ## dimensions of the squared matrix
 
-		####################		
+		####################
 		## GAMMA FUNCTION ## fraction of cells that grow into next size class between t and t + dt
-		#################### 
-		
+		####################
+
 		y <- gmax * (Einterp/E_star) # NEW VERSION
 		y[which(Einterp > E_star)] <- gmax
-		
+
 		# y <- gmax*(1-exp(-Einterp/(E_star))) # SOSIK 2003
 
-		
-		####################		
+
+		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
-		#################### 
+		####################
 		# del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) #OLD VERSION
 
 		del <- dmax * (volbins/max(volbins))^b / (1 + ((volbins/max(volbins))^b)) # NEW VERSION
 				# NOTE: volbins/max(volbins) # to make sure values are never > 1, for compatibility issue with the Delta function
-		# del[1:(j-1)] <- 0		
+		# del[1:(j-1)] <- 0
 				# if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
 					# }else{delta <- matrix(del, 1, m)}
 		delta <- matrix(del, 1, m)
-		
+
 		# ### PLOT GAMMA AND DELTA
 		# par(mfrow=c(2,1))
 		# plot(Einterp, y, type='p', col='red', lwd=4, xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)"))
@@ -49,26 +49,21 @@
 		stasis_ind <- seq(1,m^2,by=m+1) # Diagonal stasis (0)
 		growth_ind <- seq(2,m^2,by=m+1) # Subdiagonal growth (-1)
 		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) # Superdiagonal division (j-1)
-		
+
 		for(t in 1:(1/dt)){
 			A <- matrix(data=0,nrow=m, ncol=m)
-			
+
 			# Cell growth (subdiagonal region of the matrix)
-			A[growth_ind] <- y[t+hr/dt]*(1-delta[1:(m-1)])	
+			A[growth_ind] <- y[t+hr/dt]*(1-delta[1:(m-1)])
 			# Division (first row and superdiagonal j-1)
 			A[1,1:(j-1)] <- A[1,1:(j-1)]  + 2* delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
 			A[div_ind] <- 2 * delta[j:m] # The cell division terms for large (i > = j) phytoplankton
-		
+
 			# Stasis (main diagonal)
 			A[stasis_ind] <- (1-delta)*(1-y[t+hr/dt])	# the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
 			A[1,1] <- (1-delta[1])*(1-y[t+hr/dt]) + 2 * delta[1]
 			A[m,m] <- 1-delta[m]
 
-
-			# A[m,m] <- 1-colSums(A)[m]
-			# A[1,1] <- 1-colSums(A)[1]
-			# A[stasis_ind] <- 1-colSums(A)[-c(1,m)]	
-		
 					if(t == 1){B <- A}else{B <- A %*% B}
 			}
 
@@ -89,10 +84,10 @@
 		# params <- data.frame(cbind(gmax, dmax, b, E_star))
 		# # params <- as.numeric(proj$modelresults)
 
-	
+
 
 	.sigma.lsq <- function(params, Einterp, N.dist, V.hists, resol){
-				
+
 				time.interval <- median(diff(as.numeric(colnames(V.hists))))
 				res <- which(diff(as.numeric(colnames(V.hists))) == time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
 				dim <- dim(N.dist)
@@ -101,12 +96,11 @@
 				volbins <- as.numeric(row.names(V.hists))
 
 			for(hr in res){
-					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]), resol=resol)	
-					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution 
-					
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]), resol=resol)
+					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
+
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
-					sigma[,hr] <- (round(N.dist[, hr+1] - TotN[hr+1]*wt.norm)^2) #observed value - fitted value
-					#sigma[,hr] <- abs(V.hists[, hr+1] - wt.norm) #observed value - fitted value
+					sigma[,hr] <- abs(round(N.dist[, hr+1] - TotN[hr+1]*wt.norm)) #observed value - fitted value
 					}
 			sigma <- colSums(sigma)/sum(N.dist)
 			sigma <- sum(sigma, na.rm=T)
@@ -123,13 +117,13 @@
 
 
 
-	
+
 .determine.opt.para <- function(V.hists,N.dist,Edata,resol){
-		
+
 		require(DEoptim)
 
 		dt <- resol/60
-		time.interval <- median(diff(as.numeric(colnames(V.hists))))	
+		time.interval <- median(diff(as.numeric(colnames(V.hists))))
 		# dt <- 1/6; breaks <- 25 ## MATLAB
 		ti <- as.numeric(colnames(V.hists))
 
@@ -143,29 +137,29 @@
 		ep <- data.frame(spline(Edata[,1], Edata[,2], xout=seq)) #interpolate E data according to dt resolution
 		Einterp <- ep$y
 		Einterp[Einterp < 0] <- 0
-		
+
 
 		##################
 		## OPTIMIZATION ##
 		##################
 		print("Optimizing model parameters")
-		
+
 		f <- function(params) .sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, resol=resol)
-			
+
 		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1), upper=c(1,1,15,max(Einterp)), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100))
-		
+
 		params <- opt$optim$bestmem
 		gmax <- params[1]
 		dmax <- params[2]
 		b <- params[3]
 		E_star <- params[4]
 		resnorm <- opt$optim$bestval
-										
+
 		####################################################
-		## Calculate projections from best fit parameters ##	
+		## Calculate projections from best fit parameters ##
 		####################################################
 		print(params)
-		
+
 		res <- which(diff(as.numeric(colnames(V.hists))) == time.interval) # select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
 		Vproj <- V.hists
 		Nproj <- N.dist
@@ -182,17 +176,16 @@
 						}
 
 		colnames(mu_N) <- colnames(Nproj)
-		
+
 		##############################
 		## Growth rate calculation ##
 		##############################
 		d.mu_N <- 24*mean(mu_N, na.rm=T)
 		print(paste("daily growth rate=",round(d.mu_N,2)))
-			
+
 		modelresults <- data.frame(cbind(gmax,dmax,b,E_star,resnorm), row.names=NULL)
-		
+
 		modelproj <- list(modelresults, mu_N, Vproj, Nproj)
 		names(modelproj) <- c("modelresults", "mu_N","Vproj","Nproj")
 		return(modelproj)
 }
-
