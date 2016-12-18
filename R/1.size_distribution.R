@@ -1,5 +1,5 @@
 # popcycle.location <- "/Volumes/seaflow/SCOPE_1"
-# popname <- "synecho"
+# popname <- "prochloro"
 # n.breaks <- 60
 # time.interval <- 60 #minutes
 
@@ -11,6 +11,10 @@
 size.distribution <- function(db, opp.dir, vct.dir, popname, n.breaks=60, time.interval = 60){
 
     require(popcycle)
+
+          # cruise <- 'SCOPE_1'
+          # path <- "/Volumes/data/data/seaflow/refilter/"
+          # db <- paste0(path,cruise, "/",cruise,".db")
 
         # Get the time range
         stat <- get.stat.table(db, flag=TRUE)
@@ -29,8 +33,8 @@ size.distribution <- function(db, opp.dir, vct.dir, popname, n.breaks=60, time.i
          m.beads <- median(subset(stat, pop =='beads' & time > time.range[1] & time < time.range[2])[,"fsc_small_mean"])
 
         # Get Volbins
-       if(popname == 'prochloro')volbins <- round(0.025*2^(((1:57)-1)*0.120),4)
-       if(popname == 'synecho') volbins <- round(2^-5*2^(((1:57)-1)*0.125),4)
+       if(popname == 'prochloro') volbins <- round(2^-5*2^(((1:57)-1)*0.10),4)
+       if(popname == 'synecho') volbins <- round(2^-4*2^(((1:57)-1)*0.10),4)
        if(popname != 'synecho' & popname != 'prochloro' ){
              # Get the volume range for 'phyto'
              #print(paste("obtaining the range in", param, "for", popname))
@@ -97,7 +101,7 @@ size.distribution <- function(db, opp.dir, vct.dir, popname, n.breaks=60, time.i
             freq.dist <-  dens$y*diff(dens$x)[1] # convert density to frequency
             freq.dist <- freq.dist/sum(freq.dist) # normailize the frequency to 1
                 Vhist <- data.frame(cbind(Vhist, freq.dist))
-             size.dist <- round(freq.dist * mean(stat.susbet$abundance)*10^6)
+             size.dist <- round(freq.dist * nrow(opp))
                 Ndist <- data.frame(cbind(Ndist, size.dist))
                 Time <- c(Time, t)
 

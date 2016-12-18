@@ -85,8 +85,7 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 
 		if(class(proj) !='try-error'){
 		model <- matrix(cbind(as.array(model), as.array(proj)), nrow=4,ncol=ncol(model)+1)
-	  save(model, file=paste(home,"/",cruise,"/",phyto,"_model_growth_",cruise,"_Ncat",m,"_t",t, sep=""))
-
+	
 	  }else{print("error during optimization")}
 	}
 

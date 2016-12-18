@@ -20,8 +20,8 @@
 		## GAMMA FUNCTION ## fraction of cells that grow into next size class between t and t + dt
 		####################
 
-		y <- gmax * (Einterp/E_star) # NEW VERSION
-		y[which(Einterp > E_star)] <- gmax
+		y <- (gmax/E_star) * Einterp # NEW VERSION
+		y[which(Einterp >= E_star)] <- gmax
 
 		# y <- gmax*(1-exp(-Einterp/(E_star))) # SOSIK 2003
 
@@ -29,10 +29,12 @@
 		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
 		####################
-		# del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) #OLD VERSION
+		# del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) # SOSIK et al. 2003
+		# del <- dmax * (volbins^b) / (1 + (volbins^b)) # HUNTER-CEVERA et al. 2014
+		del <- dmax * (volbins/max(volbins))^b / (1 + ((volbins/max(volbins))^b)) # based on HYNES et al. 2015
+			# NOTE: volbins/max(volbins) # to make sure most values are > 1, for compatibility issue with the Delta function
 
-		del <- dmax * (volbins/max(volbins))^b / (1 + ((volbins/max(volbins))^b)) # NEW VERSION
-				# NOTE: volbins/max(volbins) # to make sure values are never > 1, for compatibility issue with the Delta function
+
 		# del[1:(j-1)] <- 0
 				# if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
 					# }else{delta <- matrix(del, 1, m)}
@@ -100,10 +102,10 @@
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
 
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
-					sigma[,hr] <- abs(round(N.dist[, hr+1] - TotN[hr+1]*wt.norm)) #observed value - fitted value
+					sigma[,hr] <- (N.dist[, hr+1] - TotN[hr+1]*wt.norm)^2 # observed value - fitted value
 					}
-			sigma <- colSums(sigma)/sum(N.dist)
-			sigma <- sum(sigma, na.rm=T)
+			sigma <- colSums(sigma)/sum(N.dist) # sum of least squared deviations
+			sigma <- sum(sigma, na.rm=T)*1000
 			return(sigma)
 
 }
