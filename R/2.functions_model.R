@@ -30,15 +30,15 @@
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
 		####################
 		# del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) # SOSIK et al. 2003
-		# del <- dmax * (volbins^b) / (1 + (volbins^b)) # HUNTER-CEVERA et al. 2014
-		del <- dmax * (volbins/max(volbins))^b / (1 + ((volbins/max(volbins))^b)) # based on HYNES et al. 2015
+		del <- dmax * (volbins^b) / (1 + (volbins^b)) # HUNTER-CEVERA et al. 2014
+
+		# del <- dmax * (volbins/max(volbins))^b / (1 + ((volbins/max(volbins))^b)) # based on HYNES et al. 2015
 			# NOTE: volbins/max(volbins) # to make sure most values are > 1, for compatibility issue with the Delta function
 
 
-		# del[1:(j-1)] <- 0
-				# if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
-					# }else{delta <- matrix(del, 1, m)}
-		delta <- matrix(del, 1, m)
+		del[1:(j-1)] <- 0
+				if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
+					}else{delta <- matrix(del, 1, m)}
 
 		# ### PLOT GAMMA AND DELTA
 		# par(mfrow=c(2,1))
@@ -105,7 +105,7 @@
 					sigma[,hr] <- (N.dist[, hr+1] - TotN[hr+1]*wt.norm)^2 # observed value - fitted value
 					}
 			sigma <- colSums(sigma)/sum(N.dist) # sum of least squared deviations
-			sigma <- sum(sigma, na.rm=T)*1000
+			sigma <- sum(sigma, na.rm=T)
 			return(sigma)
 
 }

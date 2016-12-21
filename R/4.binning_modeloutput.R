@@ -4,7 +4,7 @@
 # cat <- 57# number of size bin
 # filelist <- list.files(paste(model.output,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""), full.names=T)
 
-merge.model.output <- function(output.files, plot.raw=TRUE){
+merge.model.output <- function(output.files){
 
     require(plotrix)
 
@@ -62,7 +62,6 @@ merge.model.output <- function(output.files, plot.raw=TRUE){
             Col <- c(Col,col)
             File <- c(File, file)
 
-            if(plot.raw){
                     par(pty='m', mfrow=c(4,2))
                     plot(as.POSIXct(div.rate[,1], origin='1970-01-01', tz='GMT'),div.rate[,2], ylab="Div Rate", xlab=NA,col=Col)
                     plot(1,1, pch=NA, ylab=NA, xlab=NA, bty='n', xaxt='n', yaxt='n')
@@ -73,8 +72,7 @@ merge.model.output <- function(output.files, plot.raw=TRUE){
                     plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"E_star"],ylab="E_star", xlab=NA,col = Col)
                     plot(as.POSIXct(para.all$time, origin='1970-01-01', tz='GMT'), para.all[,"resnorm"],ylab="resnorm", xlab=NA,col = Col)
 
-                    readline("Clic RETURN to see the next iteration")
-                    }
+                    #readline("Clic RETURN to see the next iteration")
         c <- c + 1
     }
 
@@ -86,15 +84,26 @@ merge.model.output <- function(output.files, plot.raw=TRUE){
         Para.all <- para.all[order(para.all[,"time"]),]
 
 
+        allmodelproj <- list(Div.rate, Vproj, Nproj, Para.all)
+        names(allmodelproj) <- c("Div.rate", "Vproj","Nproj", "Para.all")
+        return(allmodelproj)
+}
+
+
 
 ###############
 ### BINNING ###
 ###############
-        print('merging model outputs...')
+binning <- function(allmodelproj, time.interval=60, plot=T){
 
-        time.interval <- median(diff(as.numeric(colnames(v.hist.all))))
+      time.interval <- as.numeric(time.interval)
+      Vproj <- allmodelproj$Vproj
+      Nproj <- allmodelproj$Nproj
+      Div.rate <- allmodelproj$Div.rate
+      Para.all <- allmodelproj$Para.all
+
         time.range <- range(as.numeric(colnames(Vproj)))
-        breaks <- seq(time.range[1],time.range[2], by= time.interval)
+        breaks <- seq(time.range[1],time.range[2], by= time.interval*60)
 
 
     # DIVISION
@@ -160,7 +169,7 @@ merge.model.output <- function(output.files, plot.raw=TRUE){
 
 
 
-        if(!(plot.raw)){
+        if(plot){
             par(mfrow=c(3,2))
             DP$h.time <- as.POSIXct(DP$h.time, origin="1970-01-01", tz='GMT')
                  for(i in seq(2,12,by=2))    plotCI(DP$h.time, DP[,i], uiw=DP[,i+1], sfrac=0, xlab=NA, ylab=paste(colnames(DP)[i]))

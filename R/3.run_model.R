@@ -17,6 +17,7 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 		N_dist <- distribution[[2]]
 		volbins <- as.numeric(row.names(Vhists))
 
+
 		#################################
 		### Get the range of 'para' for 'phyto' ###
 		#################################
@@ -42,7 +43,7 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 		##########################
 		## RUN size.model.functions ##
 		##########################
-
+		days <- days[1]
 	model <- array(NA, dim=c(4,1))
 	for(i in 1:length(days)){
 
@@ -85,7 +86,7 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 
 		if(class(proj) !='try-error'){
 		model <- matrix(cbind(as.array(model), as.array(proj)), nrow=4,ncol=ncol(model)+1)
-	
+
 	  }else{print("error during optimization")}
 	}
 
