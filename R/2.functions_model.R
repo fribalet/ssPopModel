@@ -30,7 +30,7 @@
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
 		####################
 		# del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) # SOSIK et al. 2003
-		del <- dmax * (volbins^b) / (1 + (volbins^b)) # HUNTER-CEVERA et al. 2014
+		del <- dmax * (100*volbins^b) / (1 + (100*volbins^b)) # HUNTER-CEVERA et al. 2014
 
 		# del <- dmax * (volbins/max(volbins))^b / (1 + ((volbins/max(volbins))^b)) # based on HYNES et al. 2015
 			# NOTE: volbins/max(volbins) # to make sure most values are > 1, for compatibility issue with the Delta function

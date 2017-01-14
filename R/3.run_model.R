@@ -43,7 +43,6 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 		##########################
 		## RUN size.model.functions ##
 		##########################
-		days <- days[1]
 	model <- array(NA, dim=c(4,1))
 	for(i in 1:length(days)){
 
