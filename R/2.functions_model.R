@@ -29,11 +29,10 @@
 		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
 		####################
-		# del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) # SOSIK et al. 2003
-		del <- dmax * (100*volbins^b) / (1 + (100*volbins^b)) # HUNTER-CEVERA et al. 2014
+		a <- 1 # in Hunter-Cevera et al. 2014
+		del <- dmax * (a*volbins)^b / (1 + (a*volbins)^b) # SOSIK et al. 2003
 
-		# del <- dmax * (volbins/max(volbins))^b / (1 + ((volbins/max(volbins))^b)) # based on HYNES et al. 2015
-			# NOTE: volbins/max(volbins) # to make sure most values are > 1, for compatibility issue with the Delta function
+		# NOTE: most values of volbinske need tp be < 1 for compatibility issue with the Delta function # based on HYNES et al. 2015
 
 
 		del[1:(j-1)] <- 0
@@ -82,7 +81,7 @@
 		# # a <-1.23
 		# b <- 3.77
 		# E_star <- 124
-		# dmax <- 0.03
+		# dmax <- 1
 		# params <- data.frame(cbind(gmax, dmax, b, E_star))
 		# # params <- as.numeric(proj$modelresults)
 
@@ -96,13 +95,18 @@
 				sigma <- matrix(NA, dim[1], dim[2]-1) # preallocate sigma
 				TotN <- as.matrix(colSums(N.dist))
 				volbins <- as.numeric(row.names(V.hists))
+				#n <- length(volbins)
 
 			for(hr in res){
 					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]), resol=resol)
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
-
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
-					sigma[,hr] <- (N.dist[, hr+1] - TotN[hr+1]*wt.norm)^2 # observed value - fitted value
+					sigma[,hr] <- abs(N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # observed value - fitted value
+					# mean.size.pred <- sum(volbins*wt.norm)
+					# mean.size.obs <-  sum(volbins*V.hists[, hr+1])
+					# sd.pred <- sqrt(sum((volbins - mean.size.pred)^2)/n)
+					# sd.obs <- sqrt(sum((volbins - mean.size.obs)^2)/n)
+					# sigma[,hr] <- abs(mean.size.obs - mean.size.pred)/sqrt(sd.obs/TotN[hr+1] + sd.pred/TotN[hr+1])
 					}
 			sigma <- colSums(sigma)/sum(N.dist) # sum of least squared deviations
 			sigma <- sum(sigma, na.rm=T)
@@ -148,7 +152,7 @@
 
 		f <- function(params) .sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, resol=resol)
 
-		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1), upper=c(1,1,15,max(Einterp)), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100))
+		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1), upper=c(1,1,15,max(Einterp)), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100, strategy=2, parallelType=1))
 
 		params <- opt$optim$bestmem
 		gmax <- params[1]
