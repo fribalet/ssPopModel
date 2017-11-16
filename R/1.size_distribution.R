@@ -1,6 +1,6 @@
 # popcycle.location <- "/Volumes/seaflow/SCOPE_1"
 # popname <- "prochloro"
-# n.breaks <- 60
+# n.breaks <- 57
 # time.interval <- 60 #minutes
 
 
