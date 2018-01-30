@@ -17,7 +17,7 @@ Here is a quick tutorial to get you started (a more detailed tutorial is in prog
   save(distribution, "path/to/size/distribution")
  ```
 
- You can visualize the size distribution using the function `plot.size.distribution`
+2. You can visualize the size distribution using the function `plot.size.distribution`
  ```r
  load("path/to/size/distribution"))
  dist <- distribution[[1]] # choose 1 or 2 if you want to see the frequency or count for the size distribution, respectively
@@ -26,7 +26,7 @@ Here is a quick tutorial to get you started (a more detailed tutorial is in prog
  plot.size.distribution(dist, mode)
  ```
 
-2. Run the model
+3. Run the model
  ```r
  # The model needs the Photosynthetic Active Radiation in order to estimate the growth rate. Here is an example:
  Par.path <- system.file("extdata", "Par.csv", package="ssPopModel")
@@ -40,18 +40,18 @@ Here is a quick tutorial to get you started (a more detailed tutorial is in prog
  model <- run.ssPopModel(path.distribution, Par, time.delay) 
  ```
 
-3. Merge data output
+4. Merge data output
  ```r
  all.simulations <- list.files('path/to/model/output', full.names=T)
  output <- merge.model.output(all.simulations)
  ```
  
- You can visualize the `gamma` and `delta` function using the function `plot.parameters`
+5. You can visualize the `gamma` and `delta` function using the function `plot.parameters`
  ```r
  plot.paramters(output)
  ```
  
- You can visualize the projection of the size distribution using the function `plot.size.distribution`
+6. You can visualize the projection of the size distribution using the function `plot.size.distribution`
  ```r
  dist <- output$Vproj # choose Vproj or Noj if you want to see the frequency or count for the size distribution, respectively
  mode <- "log" # choose "log" or "lin" if you want to plot in logarithmic or linear scale, respectively
