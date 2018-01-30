@@ -14,10 +14,12 @@ Here is a quick tutorial to get you started (a more detailed tutorial is in prog
   popname <- 'prochloro'
  
   distribution <- size.distribution(popcycle.location, popname, param="fsc_small", n.breaks=57, time.interval = 60)
+  save(distribution, "path/to/size/distribution")
  ```
 
  You can visualize the size distribution using the function `plot.size.distribution`
  ```r
+ load("path/to/size/distribution"))
  dist <- distribution[[1]] # choose 1 or 2 if you want to see the frequency or count for the size distribution, respectively
  mode <- "log" # choose "log" or "lin" if you want to plot in logarithmic or linear scale, respectively
 
