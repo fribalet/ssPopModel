@@ -1,22 +1,35 @@
+# library(R.matlab)
+# #results <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/results.mat")
+# df <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/day733320data.mat")
+# time <- seq(0,1+3600*24,by=3600)
+# volbins <- df$volbins
+# V.hists <- df$Vhists
+# 	colnames(V.hists) <- time
+# 	row.names(V.hists) <- volbins
+# N.dist <- df$N.dist
+# 	colnames(N.dist) <- time
+# 	row.names(N.dist) <- volbins
+# 	Ntot <- colSums(N.dist)
+# Edata <- df$Edata
+# 	Edata[,1] <- seq(range(time)[1], range(time)[2], length.out=nrow(Edata))
 
-run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
+
+run.ssPopModel <- function(freq.distribution, Ntot, Par, time.delay=0, dt=10){
 
 	jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow",	"#FF7F00", "red", "#7F0000"))
 
 	require(zoo)
 
-
 		##################
 		### PARAMTERS ###
 		##################
-		load(path.distribution)
-	            t <- as.numeric(time.delay)
+    t <- as.numeric(time.delay)
 		resol <- as.numeric(dt)
-
-		Vhists <- distribution[[1]]
-		N_dist <- distribution[[2]]
+		Vhists <- as.matrix(freq.distribution)
+		Ntot <- as.vector(Ntot)
+		N_dist <- Vhists %*% diag(Ntot)
+		colnames(N_dist) <- colnames(Vhists)
 		volbins <- as.numeric(row.names(Vhists))
-
 
 		#################################
 		### Get the range of 'para' for 'phyto' ###
@@ -43,51 +56,52 @@ run.ssPopModel <- function(path.distribution, Par, time.delay=0, dt=10){
 		##########################
 		## RUN size.model.functions ##
 		##########################
-	model <- array(NA, dim=c(4,1))
-	for(i in 1:length(days)){
+		model <- array(NA, dim=c(4,1))
 
-			# i <- 1
+				for(i in 1:length(days)){
 
-			print(paste("24-h growth projection starting at day", i,":",days[i]))
+					# i <- 1
 
-			hours <- seq(days[i], days[i]+60*60*24, by=time.interval)
-		#plot(Par$time, Par$par, type='o'); points(c(start, end),c(0,0), col='red',pch=16, cex=2)
+					print(paste("24-h growth projection starting at day", i,":",days[i]))
 
-		### SELECT SIZE DISTRIBUTION for DAY i
-			id <- match(hours, as.numeric(colnames(Vhists)), nomatch=0)
-			V.hists <- Vhists[,id]
-			N.dist <- N_dist[,id]
+					hours <- seq(days[i], days[i]+60*60*24, by=time.interval)
+				#plot(Par$time, Par$par, type='o'); points(c(start, end),c(0,0), col='red',pch=16, cex=2)
 
-			print(paste("the time series has",dim(V.hists)[2] , "/ 25 data points"))
-			if(is.null(dim(V.hists))){
-				print(paste("Not enough data point, skipping to the next 24-h period"))
-				next
-				}
-			if(dim(V.hists)[2]  < 16){
-				print(paste("Not enough data point, skipping to the next 24-h period"))
-				next
-				}
+				### SELECT SIZE DISTRIBUTION for DAY i
+					id <- match(hours, as.numeric(colnames(Vhists)), nomatch=0)
+					V.hists <- Vhists[,id]
+					N.dist <- N_dist[,id]
 
-
-
-
-		    # para <- V.hists; percentile <- cut(unlist(para), 100); plot3d(log2(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , unlist(para), col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
+					print(paste("the time series has",dim(V.hists)[2] , "/ 25 data points"))
+					if(is.null(dim(V.hists))){
+						print(paste("Not enough data point, skipping to the next 24-h period"))
+						next
+						}
+					if(dim(V.hists)[2]  < 16){
+						print(paste("Not enough data point, skipping to the next 24-h period"))
+						next
+						}
 
 
-	### SELECT PAR corresponding to V.hists
 
-		light <- subset(Par, time >= hours[1] & time <= hours[25])
-		pEdata <- smooth.spline(light[,"time"], light[,"par"])
-		Edata <- as.matrix(cbind(pEdata$x, pEdata$y))
 
-	### RUN size.class.model_functions
-		proj <- try(.determine.opt.para(V.hists=V.hists,N.dist=N.dist,Edata=Edata, resol=resol))
+				    # para <- V.hists; percentile <- cut(unlist(para), 100); plot3d(log2(rep(as.numeric(row.names(para)), dim(para)[2])), rep(as.numeric(colnames(para)), each=dim(para)[1]) , unlist(para), col=jet.colors(100)[percentile], type='l', lwd=3, xlab="size class", ylab="time", zlab="Frequency")
 
-		if(class(proj) !='try-error'){
-		model <- matrix(cbind(as.array(model), as.array(proj)), nrow=4,ncol=ncol(model)+1)
 
-	  }else{print("error during optimization")}
-	}
+			### SELECT PAR corresponding to V.hists
+
+				light <- subset(Par, time >= hours[1] & time <= hours[25])
+				pEdata <- smooth.spline(light[,"time"], light[,"par"])
+				Edata <- as.matrix(cbind(pEdata$x, pEdata$y))
+
+			### RUN size.class.model_functions
+				proj <- try(.determine.opt.para(V.hists=V.hists,N.dist=N.dist,Edata=Edata, resol=resol))
+
+				if(class(proj) !='try-error'){
+				model <- matrix(cbind(as.array(model), as.array(proj)), nrow=4,ncol=ncol(model)+1)
+
+			  }else{print("error during optimization")}
+			}
 
 	return(model)
 }

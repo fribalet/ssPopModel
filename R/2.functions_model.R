@@ -77,13 +77,12 @@
 ###############
 # This function calculates the sum of squares of the of the differences between the hourly observations and the model given the specified parameters
 # This function returns a column vector - called by "determine.opt.para" for the optimization.
-		# gmax <- 0.14
-		# # a <-1.23
-		# b <- 3.77
-		# E_star <- 124
-		# dmax <- 1
-		# params <- data.frame(cbind(gmax, dmax, b, E_star))
-		# # params <- as.numeric(proj$modelresults)
+		gmax <- 0.14
+		# a <-1.23
+		b <- 3.77
+		E_star <- 124
+		dmax <- 1
+		params <- data.frame(cbind(gmax, dmax, b, E_star))
 
 
 
@@ -180,8 +179,8 @@
 					mu_N[,hr+1] <- log(sum(Nproj[,hr+1])/sum(Nproj[,hr]))/
 								((as.numeric(colnames(Nproj)[hr+1])-as.numeric(colnames(Nproj)[hr]))/(time.interval))
 						}
-
-		colnames(mu_N) <- colnames(Nproj)
+		Nproj <- colSums(Nproj)
+		colnames(mu_N) <- colnames(Vproj)
 
 		##############################
 		## Growth rate calculation ##

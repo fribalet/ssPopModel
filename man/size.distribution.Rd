@@ -13,7 +13,7 @@ size.distribution(popcycle.location, popname, param="fsc_small", n.breaks=57, ti
 \item{param}{the name of the parameter that contains the light scattering values. Default value is `fsc_small`}
 \item{n.breaks}{the number of size classes for the size distribution. Default value is 57}
 \item{time.interval}{the time interval of the size distribution, in minutes. Default value is 60.}
-\time{param.range}{the range values for the parameter. It should be a vector of two values. If not provided, the function will calculated it, but watch out for outliers! }
+\item{param.range}{the range values for the parameter. It should be a vector of two values. If not provided, the function will calculated it, but watch out for outliers! }
 }
 
 \value{
