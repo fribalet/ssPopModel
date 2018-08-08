@@ -34,15 +34,7 @@ size.distribution <- function(db, opp.dir, vct.dir, popname, volume.width=0.07, 
              param.range <- c(quantile(param.phyto[,"fsc_small_min"],0.01), quantile(param.phyto[,"fsc_small_max"],0.99))
              norm.param.range <- param.range / m.beads
              volume.range <- round(1.918*(norm.param.range^0.524),4)
-             # if(inst == 740) biomass.range <- round(4.753*(norm.param.range^1.235),4)
-             # if(inst == 751) biomass.range <- round(5.401*(norm.param.range^1.622),4)
-             biomass.range <- volume.range * 0.220 # Booth 1988 (Burbage & Binder found Qc <- 0.5 * norm.param.range ^(1/1.74))
-
              volbins.cut <- 2^seq(log2(volume.range[1]), log2(volume.range[2]), by=volume.width)
-             biobins.cut <- 2^seq(log2(biomass.range[1]), log2(biomass.range[2]), length.out=length(volbins.cut))
-
-
-
 
         ##################################
         ### Generate SIZE distribution ###
@@ -50,13 +42,13 @@ size.distribution <- function(db, opp.dir, vct.dir, popname, volume.width=0.07, 
         print(paste("generating", popname, "size distribution binned in", length(volbins.cut), "size classes, in ",time.interval, "minutes time interval"))
 
          i <- 0
-        Vhist <- Bhist <- Ntot  <- Time <- NULL
+        Vhist <- Ntot  <- Time <- NULL
         for( t in time){
              message(round(100*i/length(time)), "% completed \r", appendLF=FALSE)
 
             tryCatch({
             #get the opp for phyto
-            #t <- time[133]
+            #t <- time[33]
             t <- as.POSIXct(t, origin="1970-01-01", tz='GMT')
             stat.subset <- subset(stat, pop== popname & flag==0 & time >=t & time < t+60*time.interval)
             opp <- try(get.opp.by.file(opp.dir, stat.subset$file, quantile=50, vct.dir=vct.dir, pop=popname, channel='fsc_small'))
@@ -64,26 +56,21 @@ size.distribution <- function(db, opp.dir, vct.dir, popname, volume.width=0.07, 
                 next
                 }
 
-            # convert normalized FSC to Volume and Biomass
+            # convert normalized FSC to Volume
                 norm.fsc <- opp[,"fsc_small"]/m.beads
                 volume <- round(1.918*(norm.fsc^0.524),4)
-                # if(inst == 740) biomass <- round(4.753*(norm.fsc^1.235),4)
-                # if(inst == 751) biomass <- round(5.401*(norm.fsc^1.622),4)
-                biomass <- volume * 0.220
 
-            # create the frequency distribution of Volume and Biomass
-              dens <- hist(volume, breaks=volbins.cut, plot=F)
-              freq.dist <-  dens$density*diff(dens$breaks) # convert density to frequency
-            Vhist <- data.frame(cbind(Vhist, freq.dist))
+            # create the frequency distribution of Volume
+                dens.vol <- density(log2(volume), n=length(volbins.cut),from=log2(volume.range[1]), to=log2(volume.range[2]), kernel='gaussian')
+                freq.dist.vol <-  dens.vol$y*diff(dens.vol$x)[1] # convert density to frequency
+                freq.dist.vol <- freq.dist.vol/sum(freq.dist.vol) # normailize the frequency to 1
+              Vhist <- data.frame(cbind(Vhist, freq.dist.vol))
 
-              dens2 <- hist(biomass, breaks=biobins.cut, plot=F)
-              freq.dist2 <-  dens2$density*diff(dens2$breaks) # convert density to frequency
-            Bhist <- data.frame(cbind(Bhist, freq.dist2))
+            # get cell abundance for the time interval
+                n <- mean(stat.subset$abundance, na.rm=T)
+                Ntot <- data.frame(cbind(Ntot, n))
 
-                n <- mean(stat.subset$abundance)
-            Ntot <- data.frame(cbind(Ntot, n))
-
-            Time <- c(Time, t)
+                Time <- c(Time, t)
 
             } , error = function(e) {print(paste("Encountered error at ", t))})
             i <-  i + 1
@@ -94,18 +81,15 @@ size.distribution <- function(db, opp.dir, vct.dir, popname, volume.width=0.07, 
         #######################
         ### SAVE the output ###
         #######################
-        volbins <- dens$mids
-        biobins <- dens2$mids
+        volbins <- round(2^dens.vol$x,4)
 
-        colnames(Vhist) <- colnames(Bhist) <- colnames(Ntot) <- as.character(Time)
+        colnames(Vhist) <- colnames(Ntot) <- as.character(Time)
         rownames(Vhist) <- volbins
-        rownames(Bhist) <- biobins
         rownames(Ntot) <- "Ntot"
 
         distribution <- list()
             distribution[[1]] <- Vhist
-            distribution[[2]] <- Bhist
-            distribution[[3]] <- Ntot
+            distribution[[2]] <- Ntot
 
          print("done")
         return(distribution)
