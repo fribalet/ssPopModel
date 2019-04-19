@@ -4,7 +4,8 @@
 #Construct matrix A(t) for each time step within an hour based on delta and gamma at each 10 minute time intervals then construct B(t) which is A(t)'s multiplied for the given hour
 #multiply B(t)*w(t) to get the projection to next hour dist if desired
 
-
+# Einterp <- sin(seq(3,9, length.out=100));Einterp[Einterp < 0] <- 0
+# volbins <- 2^seq(log2(15), log2(100), by=0.07)
 
 .matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star, resol){
 
@@ -19,12 +20,17 @@
 		####################
 		## GAMMA FUNCTION ## fraction of cells that grow into next size class between t and t + dt
 		####################
-
 		y <- (gmax/E_star) * Einterp # NEW VERSION
 		y[which(Einterp >= E_star)] <- gmax
 
-		# y <- gmax*(1-exp(-Einterp/(E_star))) # SOSIK 2003
 
+		##########################
+		## Respiration FUNCTION ## fraction of cells that shrink between t and t + dt
+		##########################
+				# Assumptions:
+				# 1) rate of respiration is a function of growth rate
+				# 2) rate of respiration constant (h-1) constant over the nighttime period (polysaccharide is drawn down linearly over the nighttime period)
+		resp <- 1.35294 * y + 0.05018 # from Zavrel et al. 2019 eLife. Simplificatiojn: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))
 
 		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
@@ -44,26 +50,36 @@
 		# plot(Einterp, y, type='p', col='red', lwd=4, xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)"))
 		# plot(volbins, del, type='p', col='red', lwd=4, xlab="Cell volume", ylab=paste("Delta (per",60*dt,"min)"))
 
+
+
 		################################
 		## CONSTRUCTION SPARSE MATRIX ##
 		################################
 		stasis_ind <- seq(1,m^2,by=m+1) # Diagonal stasis (0)
 		growth_ind <- seq(2,m^2,by=m+1) # Subdiagonal growth (-1)
 		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) # Superdiagonal division (j-1)
+		resp_ind <- seq(((m)+1), m^2, by=m+1) # superdiagonal (+1)
 
 		for(t in 1:(1/dt)){
 			A <- matrix(data=0,nrow=m, ncol=m)
 
-			# Cell growth (subdiagonal region of the matrix)
-			A[growth_ind] <- y[t+hr/dt]*(1-delta[1:(m-1)])
+			# Cell growth (subdiagonal)
+			A[growth_ind] <- y[t+hr/dt]*(1-delta[1:(m-1)])*(1-resp[t+hr/dt])
+
 			# Division (first row and superdiagonal j-1)
-			A[1,1:(j-1)] <- A[1,1:(j-1)]  + 2* delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
+			A[1,1:(j-1)] <- A[1,1:(j-1)]  + 2 * delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
 			A[div_ind] <- 2 * delta[j:m] # The cell division terms for large (i > = j) phytoplankton
 
 			# Stasis (main diagonal)
-			A[stasis_ind] <- (1-delta)*(1-y[t+hr/dt])	# the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
-			A[1,1] <- (1-delta[1])*(1-y[t+hr/dt]) + 2 * delta[1]
-			A[m,m] <- 1-delta[m]
+			A[stasis_ind] <- (1-delta)*(1-y[t+hr/dt])*(1-resp[t+hr/dt]) # the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
+			A[1,1] <- (1-delta[1])*(1-y[t+hr/dt])*(1-resp[t+hr/dt]) + 2 * delta[1]
+			A[m,m] <- (1-delta[m])*(1-resp[t+hr/dt])
+
+			# Respiration (superdiagonal)
+			A[1,2] <- A[1,2] + resp[t+hr/dt]
+			A[resp_ind] <- resp[t+hr/dt]
+
+
 
 					if(t == 1){B <- A}else{B <- A %*% B}
 			}
