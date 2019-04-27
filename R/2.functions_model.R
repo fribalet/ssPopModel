@@ -41,7 +41,6 @@ Edata <- df$Edata
 		y <- (gmax/E_star) * Einterp # NEW VERSION
 		y[which(Einterp >= E_star)] <- gmax
 
-
 		##########################
 		## Respiration FUNCTION ## fraction of cells that shrink between t and t + dt
 		##########################
@@ -51,7 +50,9 @@ Edata <- df$Edata
 
 
 		resp <- c*(1.35294 * y + 0.05018)*dt # from Zavrel et al. 2019 eLife. Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))
-
+		plot(Einterp, y)
+		points(Einterp, resp,col='2')
+		
 		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
 		####################
@@ -235,6 +236,6 @@ Edata <- df$Edata
 }
 
 
-points(mu_N[1,],col=2)
+points(mu_N[1,],col=3)
 plot.size.distribution(Vproj, type='l')
 plot.size.distribution(V.hists, type='l')
