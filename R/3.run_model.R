@@ -1,17 +1,17 @@
-# library(R.matlab)
-# #results <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/results.mat")
-# df <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/day733320data.mat")
-# time <- seq(0,1+3600*24,by=3600)
-# volbins <- df$volbins
-# V.hists <- df$Vhists
-# 	colnames(V.hists) <- time
-# 	row.names(V.hists) <- volbins
-# N.dist <- df$N.dist
-# 	colnames(N.dist) <- time
-# 	row.names(N.dist) <- volbins
-# 	Ntot <- colSums(N.dist)
-# Edata <- df$Edata
-# 	Edata[,1] <- seq(range(time)[1], range(time)[2], length.out=nrow(Edata))
+library(R.matlab)
+#results <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/results.mat")
+df <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/day733320data.mat")
+time <- seq(0,1+3600*24,by=3600)
+volbins <- df$volbins
+V.hists <- df$Vhists
+	colnames(V.hists) <- time
+	row.names(V.hists) <- volbins
+N.dist <- df$N.dist
+	colnames(N.dist) <- time
+	row.names(N.dist) <- volbins
+	Ntot <- colSums(N.dist)
+Edata <- df$Edata
+	Edata[,1] <- seq(range(time)[1], range(time)[2], length.out=nrow(Edata))
 
 
 run.ssPopModel <- function(freq.distribution, Ntot, Par, time.delay=0, dt=10){

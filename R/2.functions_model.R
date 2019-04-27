@@ -1,13 +1,31 @@
+library(R.matlab)
+#results <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/results.mat")
+df <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/day733320data.mat")
+time <- seq(0,1+3600*24,by=3600)
+volbins <- df$volbins
+V.hists <- df$Vhists
+	colnames(V.hists) <- time
+	row.names(V.hists) <- volbins
+N.dist <- df$N.dist
+	colnames(N.dist) <- time
+	row.names(N.dist) <- volbins
+	Ntot <- colSums(N.dist)
+Edata <- df$Edata
+	Edata[,1] <- seq(range(time)[1], range(time)[2], length.out=nrow(Edata))
+
+
+
+
+
+
+
 #######################
 ## matrix.conct.fast ##
 #######################
 #Construct matrix A(t) for each time step within an hour based on delta and gamma at each 10 minute time intervals then construct B(t) which is A(t)'s multiplied for the given hour
 #multiply B(t)*w(t) to get the projection to next hour dist if desired
 
-# Einterp <- sin(seq(3,9, length.out=100));Einterp[Einterp < 0] <- 0
-# volbins <- 2^seq(log2(15), log2(100), by=0.07)
-
-.matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star, resol){
+.matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star, c, resol){
 
 		########################
 		## INITIAL PARAMETERS ##
@@ -30,7 +48,9 @@
 				# Assumptions:
 				# 1) rate of respiration is a function of growth rate
 				# 2) rate of respiration constant (h-1) constant over the nighttime period (polysaccharide is drawn down linearly over the nighttime period)
-		resp <- 1.35294 * y + 0.05018 # from Zavrel et al. 2019 eLife. Simplificatiojn: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))
+
+
+		resp <- c*(1.35294 * y + 0.05018)*dt # from Zavrel et al. 2019 eLife. Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))
 
 		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
@@ -98,7 +118,8 @@
 		b <- 3.77
 		E_star <- 124
 		dmax <- 1
-		params <- data.frame(cbind(gmax, dmax, b, E_star))
+		c <- 0.1
+		params <- data.frame(cbind(gmax, dmax, b, E_star, c))
 
 
 
@@ -113,7 +134,7 @@
 				#n <- length(volbins)
 
 			for(hr in res){
-					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]), resol=resol)
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]), c=as.numeric(params[5]), resol=resol)
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
 					sigma[,hr] <- abs(N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # observed value - fitted value
@@ -167,13 +188,15 @@
 
 		f <- function(params) .sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, resol=resol)
 
-		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1), upper=c(1,1,15,max(Einterp)), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100, strategy=2, parallelType=1))
+		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1,1e-6), upper=c(1,1,15,max(Einterp),10), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100, strategy=2, parallelType=0))
 
 		params <- opt$optim$bestmem
 		gmax <- params[1]
 		dmax <- params[2]
 		b <- params[3]
 		E_star <- params[4]
+		c <- params[5]
+
 		resnorm <- opt$optim$bestval
 
 		####################################################
@@ -188,7 +211,7 @@
 		volbins <- as.numeric(row.names(V.hists))
 
 		for(hr in res){
-					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, b=b, E_star=E_star,dmax=dmax, resol=resol)
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, b=b, E_star=E_star,dmax=dmax, c=c, resol=resol)
 					Nproj[,hr+1] <- round(B %*% Nproj[,hr]) # calculate numbers of individuals
 					Vproj[,hr+1] <- B %*% Vproj[,hr] # calculate the projected size-frequency distribution
 					Vproj[,hr+1] <- Vproj[,hr+1]/sum(Vproj[,hr+1]) # normalize distribution
@@ -204,9 +227,14 @@
 		d.mu_N <- 24*mean(mu_N, na.rm=T)
 		print(paste("daily growth rate=",round(d.mu_N,2)))
 
-		modelresults <- data.frame(cbind(gmax,dmax,b,E_star,resnorm), row.names=NULL)
+		modelresults <- data.frame(cbind(gmax,dmax,b,E_star,c, resnorm), row.names=NULL)
 
 		modelproj <- list(modelresults, mu_N, Vproj, Nproj)
 		names(modelproj) <- c("modelresults", "mu_N","Vproj","Nproj")
 		return(modelproj)
 }
+
+
+points(mu_N[1,],col=2)
+plot.size.distribution(Vproj, type='l')
+plot.size.distribution(V.hists, type='l')
