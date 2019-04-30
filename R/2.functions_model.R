@@ -1,8 +1,8 @@
 library(R.matlab)
-#results <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/results.mat")
-df <- readMat("/Users/francois/Documents/DATA/SeaFlow/Cell_Division/Matlab_V2003/day733320data.mat")
+results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat")
+df <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/day733320data.mat")
 time <- seq(0,1+3600*24,by=3600)
-volbins <- df$volbins
+volbins <- (df$volbins)*220 #  fg 9instead of volume)
 V.hists <- df$Vhists
 	colnames(V.hists) <- time
 	row.names(V.hists) <- volbins
@@ -14,6 +14,11 @@ Edata <- df$Edata
 	Edata[,1] <- seq(range(time)[1], range(time)[2], length.out=nrow(Edata))
 
 
+	gmax <- 0.147
+	a <-1.239
+	b <- 3.772
+	E_star <- 124.15
+	dmax <- 0.03
 
 
 
@@ -30,7 +35,7 @@ Edata <- df$Edata
 		########################
 		## INITIAL PARAMETERS ##
 		########################
-		t.nodiv <- 0 # # no division during the first X hours after dawn
+		t.nodiv <- 5 # # no division during the first X hours after dawn
 		dt <- resol/60
 		j <- findInterval(2 * volbins[1], volbins)
 		m <- length(volbins) ## dimensions of the squared matrix
@@ -49,10 +54,9 @@ Edata <- df$Edata
 				# 2) rate of respiration constant (h-1) constant over the nighttime period (polysaccharide is drawn down linearly over the nighttime period)
 
 
-		resp <- c*(1.35294 * y + 0.05018)*dt # from Zavrel et al. 2019 eLife. Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))
-		plot(Einterp, y)
-		points(Einterp, resp,col='2')
-		
+		resp <- 0*c*(1.35294 * y / dt+ 0.05018) # from Zavrel et al. 2019 eLife. Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025*dt, 0.11*dt, length.out=10))
+
+		#plot(y, type='l');lines(resp,col=2)
 		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
 		####################
@@ -78,8 +82,8 @@ Edata <- df$Edata
 		################################
 		stasis_ind <- seq(1,m^2,by=m+1) # Diagonal stasis (0)
 		growth_ind <- seq(2,m^2,by=m+1) # Subdiagonal growth (-1)
-		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) # Superdiagonal division (j-1)
 		resp_ind <- seq(((m)+1), m^2, by=m+1) # superdiagonal (+1)
+		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) # Superdiagonal division (j-1)
 
 		for(t in 1:(1/dt)){
 			A <- matrix(data=0,nrow=m, ncol=m)
@@ -93,14 +97,12 @@ Edata <- df$Edata
 
 			# Stasis (main diagonal)
 			A[stasis_ind] <- (1-delta)*(1-y[t+hr/dt])*(1-resp[t+hr/dt]) # the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
-			A[1,1] <- (1-delta[1])*(1-y[t+hr/dt])*(1-resp[t+hr/dt]) + 2 * delta[1]
+			A[1,1] <- (1-y[t+hr/dt])*(1-resp[t+hr/dt])
 			A[m,m] <- (1-delta[m])*(1-resp[t+hr/dt])
 
 			# Respiration (superdiagonal)
-			A[1,2] <- A[1,2] + resp[t+hr/dt]
-			A[resp_ind] <- resp[t+hr/dt]
-
-
+			A[1,2] <- resp[t+hr/dt]
+			A[resp_ind] <- resp[t+hr/dt]*(1-delta[-1])*(1-y[t+hr/dt])
 
 					if(t == 1){B <- A}else{B <- A %*% B}
 			}
@@ -115,7 +117,7 @@ Edata <- df$Edata
 # This function calculates the sum of squares of the of the differences between the hourly observations and the model given the specified parameters
 # This function returns a column vector - called by "determine.opt.para" for the optimization.
 		gmax <- 0.14
-		# a <-1.23
+		a <-1.23
 		b <- 3.77
 		E_star <- 124
 		dmax <- 1
@@ -139,13 +141,16 @@ Edata <- df$Edata
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
 					sigma[,hr] <- abs(N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # observed value - fitted value
+
+					# sigma[,hr] <- chisq.test(wt.norm,V.hists[, hr+1],simulate.p.value = T, rescale.p = T)$p.value
+
 					# mean.size.pred <- sum(volbins*wt.norm)
 					# mean.size.obs <-  sum(volbins*V.hists[, hr+1])
 					# sd.pred <- sqrt(sum((volbins - mean.size.pred)^2)/n)
 					# sd.obs <- sqrt(sum((volbins - mean.size.obs)^2)/n)
 					# sigma[,hr] <- abs(mean.size.obs - mean.size.pred)/sqrt(sd.obs/TotN[hr+1] + sd.pred/TotN[hr+1])
 					}
-			sigma <- colSums(sigma)/sum(N.dist) # sum of least squared deviations
+			sigma <- colSums(sigma)/colSums(N.dist[,-1]) # sum of least squared deviations
 			sigma <- sum(sigma, na.rm=T)
 			return(sigma)
 
@@ -189,7 +194,7 @@ Edata <- df$Edata
 
 		f <- function(params) .sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, resol=resol)
 
-		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1,1e-6), upper=c(1,1,15,max(Einterp),10), control=DEoptim.control(itermax=1000, reltol=1e-6, trace=10, steptol=100, strategy=2, parallelType=0))
+		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1,1e-6), upper=c(1,1,15,max(Einterp),1), control=DEoptim.control(itermax=1000, reltol=1e-4, trace=10, steptol=100, strategy=2, parallelType=0))
 
 		params <- opt$optim$bestmem
 		gmax <- params[1]
@@ -236,6 +241,8 @@ Edata <- df$Edata
 }
 
 
-points(mu_N[1,],col=3)
-plot.size.distribution(Vproj, type='l')
+plot(mu_N[1,],col=3)
+Vdiff <- V.hists - Vproj
+plot.size.distribution(Vdiff, type='l')
 plot.size.distribution(V.hists, type='l')
+plot.size.distribution(Vproj, type='l')
