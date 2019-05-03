@@ -67,8 +67,8 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 		####################
 		## GAMMA FUNCTION ## fraction of cells that grow into next size class between t and t + dt
 		####################
-		y <- (1-exp(-Einterp/E_star)) * gmax# original 2003 model
-		# y <- (gmax/E_star) * Einterp # NEW VERSION
+		#y <- (1-exp(-Einterp/E_star)) * gmax# original 2003 model
+		y <- (gmax/E_star) * Einterp # NEW VERSION
 		y[which(Einterp >= E_star)] <- gmax
 
 		##########################
@@ -83,7 +83,7 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 						# Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))#
 				# converson synecho to Pro ~ 4 [0.3 / (1.35 * 0.44/24 + 0.05018)]
 					conv <- 0.3 / (1.35 * 0.44/24 + 0.05018)
-		# c <- 1
+		# c <- 0
 		d <-  conv*(1.35294 * mean(y) + 0.05018) # proportion of carbon storage to total carbon
  		resp <- d * mean(y)
 		resp <- c * (resp - y) # transform to probability to decrease size over time period
@@ -131,7 +131,7 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 			A[growth_ind] <- y[t+hr/dt]*(1-delta[1:(m-1)])*(1-resp[t+hr/dt])
 
 			# Division (first row and superdiagonal j-1)
-			A[1,1:(j-1)] <- A[1,1:(j-1)]  + 2 * delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
+			A[1,1:(j-1)] <- 2 * delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
 			A[div_ind] <- 2 * delta[j:m] # The cell division terms for large (i > = j) phytoplankton
 
 			# Respiration (superdiagonal)
@@ -159,37 +159,29 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 				sigma <- matrix(NA, dim[1], dim[2]-1) # preallocate sigma
 				TotN <- as.matrix(colSums(N.dist))
 				volbins <- as.numeric(row.names(V.hists))
-				#n <- length(volbins)
 
 			for(hr in res){
 					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]),  c=as.numeric(params[5]), resol=resol)
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
-					sigma[,hr] <- abs(N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # observed value - fitted value
-
-					# sigma[,hr] <- chisq.test(wt.norm,V.hists[, hr+1],simulate.p.value = T, rescale.p = T)$p.value
-
+					sigma[,hr] <- (N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # observed value - fitted value
+					#sigma[,hr] <- (round(V.hists[, hr+1],3) - round(wt.norm,3))^2 # observed value - fitted value
 					# mean.size.pred <- sum(volbins*wt.norm)
 					# mean.size.obs <-  sum(volbins*V.hists[, hr+1])
-					# sd.pred <- sqrt(sum((volbins - mean.size.pred)^2)/n)
-					# sd.obs <- sqrt(sum((volbins - mean.size.obs)^2)/n)
-					# sigma[,hr] <- abs(mean.size.obs - mean.size.pred)/sqrt(sd.obs/TotN[hr+1] + sd.pred/TotN[hr+1])
+					# sd.pred <- sqrt(sum((volbins - mean.size.pred)^2)/length(volbins))
+					# sd.obs <- sqrt(sum((volbins - mean.size.obs)^2)/length(volbins))
+					# sigma[,hr] <- (mean.size.obs - mean.size.pred)/sqrt(sd.obs/TotN[hr+1] + sd.pred/TotN[hr+1])
 					}
-			sigma <- colSums(sigma)/colSums(N.dist[,-1]) # sum of least squared deviations
-			sigma <- sum(sigma, na.rm=T)
+			#sigma <- colSums(sigma)/colSums(N.dist[,-1])
+			sigma <- sum(sigma, na.rm=T)*1000
 			return(sigma)
 
 }
 
 
-
 ########################
 ## determine.opt.para ##
 ########################
-
-
-
-
 
 .determine.opt.para <- function(V.hists,N.dist,Edata,resol){
 
@@ -219,7 +211,7 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 
 		f <- function(params) .sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, resol=resol)
 
-		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1,1e-6), upper=c(1,1,15,max(Einterp),15), control=DEoptim.control(itermax=1000, reltol=1e-2, trace=10, steptol=100, strategy=2, parallelType=0))
+		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1,1e-6), upper=c(1,1,15,max(Einterp),15), control=DEoptim.control(itermax=1000, reltol=1e-3, trace=10, steptol=100, strategy=2, parallelType=0))
 
 		params <- opt$optim$bestmem
 		gmax <- params[1]
@@ -229,6 +221,7 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 		c <- params[5]
 
 		resnorm <- opt$optim$bestval
+		print(paste("goodness of fit:", resnorm))
 
 		####################################################
 		## Calculate projections from best fit parameters ##
@@ -242,11 +235,10 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 		volbins <- as.numeric(row.names(V.hists))
 
 		for(hr in res){
-
 					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, dmax=dmax,b=b, E_star=E_star,c=c, resol=resol)
-					Nproj[,hr+1] <- B %*% Nproj[,hr] # calculate numbers of individuals
+					Nproj[,hr+1] <- round(B %*% Nproj[,hr]) # calculate numbers of individuals
 					Vproj[,hr+1] <- B %*% Vproj[,hr] # calculate the projected size-frequency distribution
-					Vproj[,hr+1] <- Vproj[,hr+1]/sum(Vproj[,hr+1]) # normalize distribution
+					Vproj[,hr+1] <- Vproj[,hr+1]/sum(Vproj[,hr+1]) # normalize distribution so sum = 1
 					mu_N[,hr+1] <- log(sum(Nproj[,hr+1])/sum(Nproj[,hr]))/
 								((as.numeric(colnames(Nproj)[hr+1])-as.numeric(colnames(Nproj)[hr]))/(time.interval))
 						}
@@ -268,7 +260,9 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 
 
 plot(mu_N[1,],type='o')
-Vdiff <- Vproj - V.hists
-plot.size.distribution(Vdiff, type='l',lwd=2)
-plot.size.distribution(V.hists, type='l')
-plot.size.distribution(Vproj, type='l')
+
+Vdiff <- (Vproj - V.hists)
+plot.size.distribution(Vdiff*Nproj, type='l')
+plot.size.distribution(N.hists, type='l')
+plot.size.distribution(Vproj * Nproj, type='l')
+plot.size.distribution(N.dist, type='l')
