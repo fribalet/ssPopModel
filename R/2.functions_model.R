@@ -2,10 +2,9 @@
 ### LOAD EXAMPLE DATA ###
 #########################
 library(R.matlab)
-results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat")
 df <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/day733320data.mat")
 time <- seq(0,1+3600*24,by=3600)
-volbins <- (df$volbins)*220 #  fg (instead of volume)
+volbins <- (df$volbins) #  fg (instead of volume)
 V.hists <- df$Vhists
 	colnames(V.hists) <- time
 	row.names(V.hists) <- volbins
@@ -16,6 +15,7 @@ N.dist <- df$N.dist
 Edata <- df$Edata
 	Edata[,1] <- seq(range(time)[1], range(time)[2], length.out=nrow(Edata))
 
+resol <- 10
 dt <- resol/60
 	ime.interval <- median(diff(as.numeric(colnames(V.hists))))
 	ti <- as.numeric(colnames(V.hists))
@@ -32,13 +32,18 @@ dt <- resol/60
 	Einterp[Einterp < 0] <- 0
 
 
-	gmax <- 0.147
-	a <-1.239
-	b <- 3.772
-	E_star <- 124.15
-	dmax <- 0.03
+results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat")
+	Vproj <- results$Vproj
+	colnames(Vproj) <- time
+	row.names(Vproj) <- volbins
 
-	resol <- 10
+	params <- results$modelresults[-1]
+	gmax <- params[1]
+	a <- params[2]
+	b <- params[3]
+	E_star <- params[4]
+	dmax <- params[5]
+
 	hr <- 1
 
 
@@ -62,7 +67,8 @@ dt <- resol/60
 		####################
 		## GAMMA FUNCTION ## fraction of cells that grow into next size class between t and t + dt
 		####################
-		y <- (gmax/E_star) * Einterp # NEW VERSION
+		y <- (1-exp(-Einterp/E_star)) * gmax# original 2003 model
+		# y <- (gmax/E_star) * Einterp # NEW VERSION
 		y[which(Einterp >= E_star)] <- gmax
 
 		##########################
@@ -72,12 +78,20 @@ dt <- resol/60
 				# 1) rate of respiration is a function of growth rate
 				# 2) rate of respiration constant (h-1) constant over the nighttime period (polysaccharide is drawn down linearly over the nighttime period)
 
+				# From Szul et al., 2019 mSystems. At Pro growth rate of 0.44 d-1 (or 0.0183 h-1), proportion of carbon storage to total carbon ~ 30%
+				# From Zavrel et al. 2019 eLife. At Synechocystis growth rate of 44 d-1, proportion of carbon storage to total carbon ~ 7.4 % [100*(1.35 * 0.44/24 + 0.05018)]
+						# Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))#
+				# converson synecho to Pro ~ 4 [0.3 / (1.35 * 0.44/24 + 0.05018)]
+					conv <- 0.3 / (1.35 * 0.44/24 + 0.05018)
+		# c <- 1
+		d <-  conv*(1.35294 * mean(y) + 0.05018) # proportion of carbon storage to total carbon
+ 		resp <- d * mean(y)
+		resp <- c * (resp - y) # transform to probability to decrease size over time period
+		resp[which(resp < y)] <- 0 # probablity to decrease size class is 0 when growth rate > respiration rate
 
-		resp <- c*(1.35294 * y + 0.05018) * dt# from Zavrel et al. 2019 eLife. Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025*dt, 0.11*dt, length.out=10))
+			# plot(y); points(resp,col=2); abline(h=c(mean(y), mean(resp)),col=c(1,2))
+			# print(mean(resp)/mean(y))
 
-		# par(mfrow=c(2,1))
-		# plot(y, type='l');lines(resp,col=2)
-		# plot(Einterp,y, type='p');points(Einterp, resp,col=2)
 		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
 		####################
@@ -91,12 +105,11 @@ dt <- resol/60
 				if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
 					}else{delta <- matrix(del, 1, m)}
 
-		# ### PLOT GAMMA AND DELTA
-		# par(mfrow=c(2,1))
-		# plot(Einterp, y, type='p', col='red', lwd=4, xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)"))
-		# plot(volbins, del, type='p', col='red', lwd=4, xlab="Cell volume", ylab=paste("Delta (per",60*dt,"min)"))
-
-
+		### PLOT GAMMA AND DELTA
+		# par(mfrow=c(3,1))
+		# plot(y, type='p', col='red', xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)")); points(resp,col='lightblue')
+		# plot(Einterp, y, type='p', col='red', xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)")); points(Einterp, resp,col='lightblue')
+		# plot(volbins, del, type='p', col='red', xlab="Cell volume", ylab=paste("Delta (per",60*dt,"min)"))
 
 		################################
 		## CONSTRUCTION SPARSE MATRIX ##
@@ -149,7 +162,7 @@ dt <- resol/60
 				#n <- length(volbins)
 
 			for(hr in res){
-					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]), c=as.numeric(params[5]), resol=resol)
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]),  c=as.numeric(params[5]), resol=resol)
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
 					sigma[,hr] <- abs(N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # observed value - fitted value
@@ -206,7 +219,7 @@ dt <- resol/60
 
 		f <- function(params) .sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, resol=resol)
 
-		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1,1e-6), upper=c(1,1,15,max(Einterp),1), control=DEoptim.control(itermax=1000, reltol=1e-2, trace=10, steptol=100, strategy=2, parallelType=0))
+		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1,1e-6), upper=c(1,1,15,max(Einterp),15), control=DEoptim.control(itermax=1000, reltol=1e-2, trace=10, steptol=100, strategy=2, parallelType=0))
 
 		params <- opt$optim$bestmem
 		gmax <- params[1]
@@ -230,7 +243,7 @@ dt <- resol/60
 
 		for(hr in res){
 
-					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, b=b, E_star=E_star,dmax=dmax, c=c, resol=resol)
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, dmax=dmax,b=b, E_star=E_star,c=c, resol=resol)
 					Nproj[,hr+1] <- B %*% Nproj[,hr] # calculate numbers of individuals
 					Vproj[,hr+1] <- B %*% Vproj[,hr] # calculate the projected size-frequency distribution
 					Vproj[,hr+1] <- Vproj[,hr+1]/sum(Vproj[,hr+1]) # normalize distribution
@@ -246,7 +259,7 @@ dt <- resol/60
 		d.mu_N <- 24*mean(mu_N[-1], na.rm=T)
 		print(paste("daily growth rate=",round(d.mu_N,2)))
 
-		modelresults <- data.frame(cbind(gmax,dmax,b,E_star,c, resnorm), row.names=NULL)
+		modelresults <- data.frame(cbind(gmax,dmax,b,E_star,c,resnorm), row.names=NULL)
 
 		modelproj <- list(modelresults, mu_N, Vproj, Nproj)
 		names(modelproj) <- c("modelresults", "mu_N","Vproj","Nproj")
@@ -255,7 +268,7 @@ dt <- resol/60
 
 
 plot(mu_N[1,],type='o')
-Vdiff <- V.hists - Vproj
+Vdiff <- Vproj - V.hists
 plot.size.distribution(Vdiff, type='l',lwd=2)
 plot.size.distribution(V.hists, type='l')
 plot.size.distribution(Vproj, type='l')
