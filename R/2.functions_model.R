@@ -43,6 +43,7 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 	b <- params[3]
 	E_star <- params[4]
 	dmax <- params[5]
+	c <- 1.5
 
 	hr <- 1
 
@@ -81,8 +82,8 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 				# From Szul et al., 2019 mSystems. At Pro growth rate of 0.44 d-1 (or 0.0183 h-1), proportion of carbon storage to total carbon ~ 30%
 				# From Zavrel et al. 2019 eLife. At Synechocystis growth rate of 44 d-1, proportion of carbon storage to total carbon ~ 7.4 % [100*(1.35 * 0.44/24 + 0.05018)]
 						# Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))#
-				# converson synecho to Pro ~ 4 [0.3 / (1.35 * 0.44/24 + 0.05018)]
-					conv <- 0.3 / (1.35 * 0.44/24 + 0.05018)
+				# converson Synechocystis to Prochlorococcus ~ 4 [0.3 / (1.35 * 0.44/24 + 0.05018)]
+		conv <- 0.3 / (1.35 * 0.44/24 + 0.05018)
 		# c <- 0
 		d <-  conv*(1.35294 * mean(y) + 0.05018) # proportion of carbon storage to total carbon
  		resp <- d * mean(y)
@@ -105,7 +106,7 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 				if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
 					}else{delta <- matrix(del, 1, m)}
 
-		### PLOT GAMMA AND DELTA
+		## PLOT GAMMA AND DELTA
 		# par(mfrow=c(3,1))
 		# plot(y, type='p', col='red', xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)")); points(resp,col='lightblue')
 		# plot(Einterp, y, type='p', col='red', xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)")); points(Einterp, resp,col='lightblue')
@@ -118,25 +119,35 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 		growth_ind <- seq(2,m^2,by=m+1) # Subdiagonal growth (-1)
 		resp_ind <- seq(m+1, m^2, by=m+1) # superdiagonal (+1)
 		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) # Superdiagonal division (j-1)
+		n <- length(volbins)
 
 		for(t in 1:(1/dt)){
 			#t <- 1
 			A <- matrix(data=0,nrow=m, ncol=m)
 
+			allo <- (volbins^-1.3) # allometric relationship of carbon metabolism
+			allo <- log(allo/ min(allo))
+			allo[which(allo > 5)]<- 5 # to limit difference in rate between smallest and largest size
+			#allo <- rep(1,n) # no allometric relationship
+			gamma <- y[t+hr/dt]*allo
+			respiration <- resp[t+hr/dt]*allo
+
+			# plot(volbins, gamma); abline(h=c(y[t+hr/dt] , mean(gamma)), col=c(1,2));points(volbins, respiration,col=3)
+
 			# Stasis (main diagonal)
-			A[stasis_ind] <- (1-delta)*(1-y[t+hr/dt])*(1-resp[t+hr/dt]) # the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
-			A[m,m] <- (1-delta[m])*(1-resp[t+hr/dt])
+			A[stasis_ind] <- (1-delta)*(1-gamma)*(1-respiration) # the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
+			A[m,m] <- (1-delta[m])*(1-respiration[m])
 
 			# Cell growth (subdiagonal)
-			A[growth_ind] <- y[t+hr/dt]*(1-delta[1:(m-1)])*(1-resp[t+hr/dt])
+			A[growth_ind] <- gamma[1:(m-1)]*(1-delta[1:(m-1)])*(1-respiration[1:(m-1)])
 
 			# Division (first row and superdiagonal j-1)
 			A[1,1:(j-1)] <- 2 * delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
 			A[div_ind] <- 2 * delta[j:m] # The cell division terms for large (i > = j) phytoplankton
 
 			# Respiration (superdiagonal)
-			A[1,2] <- A[1,2]  + resp[t+hr/dt]
-			A[resp_ind] <- resp[t+hr/dt]*(1-delta[-1])*(1-y[t+hr/dt])
+			A[1,2] <- A[1,2]  + respiration[1]
+			A[resp_ind] <- respiration[-1]*(1-delta[-1])*(1-gamma[-1])
 
 					if(t == 1){B <- A}else{B <- A %*% B}
 			}
@@ -164,16 +175,23 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]),  c=as.numeric(params[5]), resol=resol)
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
-					sigma[,hr] <- (N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # observed value - fitted value
-					#sigma[,hr] <- (round(V.hists[, hr+1],3) - round(wt.norm,3))^2 # observed value - fitted value
+					Nproj <- round(TotN[hr+1]*wt.norm)
+					med.pred <- which(Nproj == max(Nproj))
+					width.pred <- diff(range(which(Nproj > 0)))
+					med.obs <- which(V.hists[,hr] == max(V.hists[,hr]))
+					width.obs <- diff(range(which(N.dist[,hr] > 0)))
+
+					distorsion <- as.vector((min.obs - min.pred)^2 + 2*(med.pred - med.obs)^2)
+					sigma[,hr] <- distorsion[1] * (N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # ABSOLUTE observed value - fitted value
+					#sigma[,hr] <- ((N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))/TotN[hr+1]))^2 # RELATIVE observed value - fitted value
 					# mean.size.pred <- sum(volbins*wt.norm)
 					# mean.size.obs <-  sum(volbins*V.hists[, hr+1])
 					# sd.pred <- sqrt(sum((volbins - mean.size.pred)^2)/length(volbins))
 					# sd.obs <- sqrt(sum((volbins - mean.size.obs)^2)/length(volbins))
 					# sigma[,hr] <- (mean.size.obs - mean.size.pred)/sqrt(sd.obs/TotN[hr+1] + sd.pred/TotN[hr+1])
 					}
-			#sigma <- colSums(sigma)/colSums(N.dist[,-1])
-			sigma <- sum(sigma, na.rm=T)*1000
+			sigma <- colSums(sigma)/colSums(N.dist[,-1])
+			sigma <- mean(sigma, na.rm=T)
 			return(sigma)
 
 }
@@ -219,9 +237,7 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 		b <- params[3]
 		E_star <- params[4]
 		c <- params[5]
-
 		resnorm <- opt$optim$bestval
-		print(paste("goodness of fit:", resnorm))
 
 		####################################################
 		## Calculate projections from best fit parameters ##
@@ -262,7 +278,7 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 plot(mu_N[1,],type='o')
 
 Vdiff <- (Vproj - V.hists)
-plot.size.distribution(Vdiff*Nproj, type='l')
-plot.size.distribution(N.hists, type='l')
-plot.size.distribution(Vproj * Nproj, type='l')
-plot.size.distribution(N.dist, type='l')
+print(sum(abs(Vproj - V.hists)))
+plot.size.distribution(Vdiff, type='l')
+plot.size.distribution(Vproj, type='l')
+plot.size.distribution(V.hists, type='l')
