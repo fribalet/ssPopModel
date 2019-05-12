@@ -1,55 +1,3 @@
-#########################
-### LOAD EXAMPLE DATA ###
-#########################
-library(ssPopModel)
-library(R.matlab)
-df <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/day733320data.mat")
-time <- seq(0,1+3600*24,by=3600)
-volbins <- (df$volbins) # µm^-3
-V.hists <- df$Vhists
-	colnames(V.hists) <- time
-	row.names(V.hists) <- volbins
-N.dist <- df$N.dist
-	colnames(N.dist) <- time
-	row.names(N.dist) <- volbins
-	Ntot <- colSums(N.dist)
-Edata <- df$Edata
-	Edata[,1] <- seq(range(time)[1], range(time)[2], length.out=nrow(Edata))
-
-resol <- 10
-dt <- resol/60
-	ime.interval <- median(diff(as.numeric(colnames(V.hists))))
-	ti <- as.numeric(colnames(V.hists))
-
-	# create Light data with 'dt' time interval.
-		seq <- NULL
-		for(i in 1:(length(ti)-1)){
-			s <- seq(ti[i], ti[i+1], length.out=1/dt)
-			seq <- c(seq, s)
-		}
-
-	ep <- data.frame(spline(Edata[,1], Edata[,2], xout=seq)) #interpolate E data according to dt resolution
-	Einterp <- ep$y
-	Einterp[Einterp < 0] <- 0
-
-
-results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat")
-	Vproj <- results$Vproj
-	colnames(Vproj) <- time
-	row.names(Vproj) <- volbins
-
-	params <- results$modelresults[-1]
-	gmax <- params[1]
-	a <- params[2]
-	b <- params[3]
-	E_star <- params[4]
-	dmax <- params[5]
-	c <- 1.5
-
-	hr <- 1
-
-
-
 #######################
 ## matrix.conct.fast ##
 #######################
@@ -85,7 +33,6 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 						# Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))#
 				# converson Synechocystis to Prochlorococcus ~ 4 [0.3 / (1.35 * 0.44/24 + 0.05018)]
 		conv <- 0.3 / (1.35 * 0.44/24 + 0.05018)
-		# c <- 0
 		d <-  conv*(1.35294 * mean(y) + 0.05018) # proportion of carbon storage to total carbon
  		resp <- d * mean(y)
 		resp <- c * (resp - y) # transform to probability to decrease size over time period
@@ -125,7 +72,6 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 			allo <- d * (volbins^-1.3) # allometric relationship of carbon metabolism
 			allo <- log(allo/ min(allo))
 			#allo[which(allo > 5)]<- 5 # to limit difference in rate between smallest and largest size
-			allo <- rep(1,n) # no allometric relationship
 			gamma <- y[t+hr/dt]*allo
 			respiration <- resp[t+hr/dt]*allo
 
@@ -172,21 +118,7 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]),  c=as.numeric(params[5]), d=as.numeric(params[6]),resol=resol)
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
-
-					# Nproj <- round(TotN[hr+1]*wt.norm)
-					# med.pred <- which(Nproj == max(Nproj))
-					# width.pred <- diff(range(which(Nproj > 0)))
-					# med.obs <- which(V.hists[,hr] == max(V.hists[,hr]))
-					# width.obs <- diff(range(which(N.dist[,hr] > 0)))
-					# distorsion <- as.vector((min.obs - min.pred)^2 + 2*(med.pred - med.obs)^2)
-
 					sigma[,hr] <-  (N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # ABSOLUTE observed value - fitted value
-					#sigma[,hr] <- ((N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))/TotN[hr+1]))^2 # RELATIVE observed value - fitted value
-					# mean.size.pred <- sum(volbins*wt.norm)
-					# mean.size.obs <-  sum(volbins*V.hists[, hr+1])
-					# sd.pred <- sqrt(sum((volbins - mean.size.pred)^2)/length(volbins))
-					# sd.obs <- sqrt(sum((volbins - mean.size.obs)^2)/length(volbins))
-					# sigma[,hr] <- (mean.size.obs - mean.size.pred)/sqrt(sd.obs/TotN[hr+1] + sd.pred/TotN[hr+1])
 					}
 			sigma <- colSums(sigma)/colSums(N.dist[,-1])
 			sigma <- mean(sigma, na.rm=T)
@@ -272,14 +204,3 @@ results <- readMat("~/Documents/DATA/Codes/ssPopModel/inst/sosik2003/results.mat
 		names(modelproj) <- c("modelresults", "mu_N","Vproj","Nproj")
 		return(modelproj)
 }
-
-
-plot(mu_N[-c(1:2)],type='o', ylim=c(0,0.06), xlab='time after dawn', ylab="Div rate (h-1)", pch=21, cex=2, bg=adjustcolor(1,0.25))
-points(mu_N[-c(1:2)],type='o', pch=21, cex=2, bg=adjustcolor(2,0.25))
-# #log(sum(Nproj[24])/sum(Nproj[1])) # daily rate calculation from 2003 model
-#
-Vdiff <- (Vproj - V.hists)
-print(sum(abs(Vproj - V.hists)))
-plot.size.distribution(Vdiff, type='l')
-plot.size.distribution(Vproj, type='l')
-plot.size.distribution(V.hists, type='l')
