@@ -1,7 +1,15 @@
+# db <- '~/Documents/DATA/MESO_SCOPE.db'
+# vct.dir <- '~/Documents/DATA/MESO_SCOPE_vct'
+# distribution <- size.distribution(db, vct.dir, binwidth=0.05, quantile=2.5, popname=NULL, channel='diam_mid')
+# plot(as.numeric(row.names(distribution))[-c(1:60)], distribution[-c(1:60),1], log='x'); points(min.volume , 0, col=2)
+# plot.size.distribution(distribution[-c(1:60),], mode='log', type='l')
+#   write.csv(distribution[-c(1:60),], '~/Desktop/MESO_SCOPE_PDF.csv',quote=F)
+# plot(vct.table[,'diam_mid'])
+
 ################################
 ### CREATE size distribution ###
 ################################
-size.distribution <- function(db, vct.dir,binwidth=0.0125, quantile=c(2.5, 50,97.5),
+size.distribution <- function(db, vct.dir,binwidth=0.05, quantile=c(2.5, 50,97.5),
                               popname=c('prochloro','synecho','picoeuk',NULL),
                               channel=c('diam_lwr', 'diam_mid', 'diam_upr')){
 
@@ -9,17 +17,6 @@ size.distribution <- function(db, vct.dir,binwidth=0.0125, quantile=c(2.5, 50,97
 
   require(popcycle)
   require(zoo)
-  # create template of size distribution
-  min.volume <- 4/3 * pi * (0.4/2)^3 # smallest Pro
-  max.volume <- 4/3 * pi * (6/2)^3 # largest Picoeuks
-  breaks <- round(2^seq(log2(min.volume), log2(max.volume), by=binwidth),5)
-
-  # Get Time from metadata
-  sfl <- get.sfl.table(db)
-
-  # Get info to determine volume analyzed per sample
-  inst <- get.inst(db) # instrument serial Number
-  opp <- subset(get.opp.table(db), quantile == QUANT) # volume of virtual core for each sample
 
   # Get list of files, with list of outliers
   vct.table.all <- subset(get.vct.table(db), quantile == QUANT)
@@ -32,12 +29,34 @@ size.distribution <- function(db, vct.dir,binwidth=0.0125, quantile=c(2.5, 50,97
   # Select on files that contains the population of interest
   if(!is.null(popname)) vct.table <- vct.table[vct.table$pop == popname,]
 
+  # cset bining of size distribution
+  lim <- range(vct.table[,channel]) # range of mean cell diameter
+  if(!is.null(popname)){ min.volume <- 0.5 * (4/3 * pi * (0.5*lim[1])^3) # half the volume of the smallest mean cell volumr
+                         max.volume <- 2 * (4/3 * pi * (0.5*lim[2])^3) # twice the volume of the largest mean cell volumr
+                       }else{
+                         min.volume <- (4/3 * pi * (0.5*lim[1])^3)
+                         max.volume <- (4/3 * pi * (0.5*lim[2])^3)
+                       }
+  breaks <- round(2^seq(log2(min.volume), log2(max.volume), by=binwidth),5)
+
+  # Get Time from metadata
+  sfl <- get.sfl.table(db)
+
+  # Get info to determine volume analyzed per sample
+  inst <- get.inst(db) # instrument serial Number
+  opp <- subset(get.opp.table(db), quantile == QUANT) # volume of virtual core for each sample
+
+
   # Return list of unique files
+  #############################
+
   vct.list <- unique(vct.table$file)
 
   i <- 1
   distribution <- NULL
+
   for(file.name in vct.list){
+
     message(round(100*i/length(vct.list)), "% completed \r", appendLF=FALSE)
 
     #retrieve time
