@@ -1,7 +1,7 @@
 ################################
 ### CREATE size distribution ###
 ################################
-size.distribution <- function(db, vct.dir,binwidth=0.05,
+size.distribution <- function(db, vct.dir,binwidth=0.05, log=T,
                       quantile=c(2.5, 50,97.5),
                       popname=c(NULL, 'prochloro','synecho','picoeuk','croco'),
                       channel=c('diam_mid','vol_mid','Qc_mid')){
