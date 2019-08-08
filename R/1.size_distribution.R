@@ -1,12 +1,13 @@
 ################################
 ### CREATE size distribution ###
 ################################
-size.distribution <- function(db, vct.dir,binwidth=0.05, log=T,
+size.distribution <- function(db, vct.dir,binwidth=c(0.05, 0.002), log=c(TRUE, FALSE),
                       quantile=c(2.5, 50,97.5),
                       popname=c(NULL, 'prochloro','synecho','picoeuk','croco'),
-                      channel=c('diam_mid','vol_mid','Qc_mid')){
+                      channel=c('diam_mid','Qc_mid')){
 
   QUANT <- as.numeric(quantile)
+  CHANNEL <- as.character(channel)
 
   require(popcycle)
   require(zoo)
@@ -23,20 +24,15 @@ size.distribution <- function(db, vct.dir,binwidth=0.05, log=T,
   if(!is.null(popname)) vct.table <- vct.table[vct.table$pop == popname,]
 
   # set bining of PDF
-    CHANNEL <- channel
-  if(any(channel == c('volume_lwr','volume_mid','volume_upr'))){
-    CHANNEL <- sub('volume','diam',channel)
-    }
     # range of mean value
     lim <- range(vct.table[,CHANNEL])
     # 1/10 the smallest mean cell value
     min <- lim[1] / 10
-    if(CHANNEL == channel) min <- 0.1 * 4/3 * pi * (0.5*lim[1])^3
     # 10 x the largest mean cell value
     max <- 10 * lim[2]
-    if(CHANNEL == channel) max <- 10 * 4/3 * pi * (0.5*lim[2])^3
+
   breaks <- round(seq(min, max, by=binwidth),5)
-    if(log) breaks <- round(2^seq(log2(min), log2(max), by=binwidth),5)
+  if(log) breaks <- round(2^seq(log2(min), log2(max), by=binwidth),5)
 
   # Get Time from metadata
   sfl <- get.sfl.table(db)
@@ -86,8 +82,6 @@ size.distribution <- function(db, vct.dir,binwidth=0.05, log=T,
       dat <- vct[vct$pop != 'beads', CHANNEL]
     }
 
-    if(CHANNEL == channel) dat <- 4/3 * pi * (dat/2)^3
-
     # Get particle count in each bin
     dist <- data.frame(table(cut(dat, breaks)))
 
@@ -130,7 +124,7 @@ plot.size.distribution <- function(distribution, log=TRUE, smooth=0){
 
     p <- plotly::plot_ly(data=param, x= ~ time, y = ~ tbd, z = ~ abundance) %>%
                     add_surface() %>%
-                    layout(scene = list(xaxis = list(autorange = "reversed", yaxis= list(title=paste(varname)))))
+                    layout(scene = list(xaxis = list(autorange = "reversed"), yaxis= list(title=paste(varname))))
 
     if(log) p <- p %>% plotly::layout(scene = list(yaxis = list(type = "log",title=paste(varname))))
 
