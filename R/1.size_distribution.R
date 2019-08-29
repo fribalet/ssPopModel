@@ -4,7 +4,8 @@
 size.distribution <- function(db, vct.dir,binwidth=c(0.05, 0.002), log=c(TRUE, FALSE),
                       quantile=c(2.5, 50,97.5),
                       popname=c(NULL, 'prochloro','synecho','picoeuk','croco'),
-                      channel=c('diam_mid','Qc_mid')){
+                      channel=c('diam_mid','Qc_mid'),
+                      lim=c(min, max)){
 
   QUANT <- as.numeric(quantile)
   CHANNEL <- as.character(channel)
@@ -25,7 +26,7 @@ size.distribution <- function(db, vct.dir,binwidth=c(0.05, 0.002), log=c(TRUE, F
 
   # set bining of PDF
     # range of mean value
-    lim <- range(vct.table[,CHANNEL])
+    if(is.null(lim)) lim <- range(vct.table[,CHANNEL])
     # 1/10 the smallest mean cell value
     min <- lim[1] / 10
     # 10 x the largest mean cell value
