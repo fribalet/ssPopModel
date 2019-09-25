@@ -1,47 +1,22 @@
-# cruise <- c <- "SCOPE_1"
-# path <- "/Volumes/OPPdata/SeaFlow-OPP/latest/"
-# opp.dir <- paste0(path,cruise, "/",cruise,"_opp")
-# vct.dir <- paste0(path,cruise, "/", cruise, "_vct")
-# db <- paste0(path,cruise, "/",cruise,".db")
-#
-# min <- 0.1
-# breaks <- round(min*2^(((1:m)-1)*0.125),5)
-# breaks <- round(2^seq(log2(min), log2(max), length.out=200), 5)
-#
-# distribution <- size.distribution(db, vct.dir, quantile=2.5, popname='synecho', param="diam_mid", breaks=NULL)
-
-
-
-
-
-
-
-
-
 #' Create particle size distribution
 #'
 #' @param db SQLite3 database file path.
 #' @param vct.dir VCT file directory..
 #' @param quantile Filtering function.
-#' @param popname Population name. If NULL, all particles (except beads) will be used.
 #' @param param Parameter from VCT to create the size distribution.
 #'   Can be either diameter (diam_lwr, diam_mid or diam_upr)
 #'   or carbon quotas (Qc_lwr, Qc_mid or Qc_upr)
-#' @param delta Delta is a constant that define te resolution of the size disitribution.
-#'   For Matrix model application, Delta must be chosen so that 1/delta is an integer
-#' @param m M is the numnber of size classes. Must be chossen so it covers the size range
-#' @param breaks Breaks must be a sequence defining the breaks for the size distribution (overwrite delta and m).
+#' @param breaks Breaks must be a sequence defining the breaks for the size distribution.
 #' @return Size distribution
 #' @examples
 #' \dontrun{
-#' distribution <- size.distribution(db, vct.dir, quantile=2.5, popname="synecho", channel="Qc_mid", delta=0.125, m=60)
+#' distribution <- size.distribution(db, vct.dir, quantile=50, popname="synecho", channel="Qc_mid", delta=0.125, m=60)
 #' }
 #' @export size.distribution
-size.distribution <- function(db, vct.dir, quantile=c(2.5, 50,97.5),
-                      popname='prochloro',
+
+size.distribution <- function(db, vct.dir, quantile=50,
                       param ='Qc_mid',
-                      delta = 0.125, m= 60,
-                      breaks = NULL){
+                      breaks){
 
   QUANT <- as.numeric(quantile)
   PARAM <- as.character(param)
@@ -58,30 +33,8 @@ size.distribution <- function(db, vct.dir, quantile=c(2.5, 50,97.5),
   # Remove outliers from list of files
   vct.table <- subset(vct.table, flag==0)
 
-  # Select on files that contains the population of interest
-  if(!is.null(popname)) vct.table <- vct.table[vct.table$pop == popname,]
-
-
-  if(is.null(breaks) & any(PARAM == c("Qc_lwr","Qc_mid","Qc_upr"))){
-    is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
-  # set PDF template
-    if(!is.wholenumber(1/delta)) print("WARNING: For Matrix model application, Delta must be chosen so that 1/delta is an integer")
-    min <- min(vct.table[,paste0(PARAM,"_1q")]) / 10 # 1/10 the value of 25% percentile
-    breaks <- round(min*2^(((1:m)-1)*delta),5)
-  }
-
-  if(is.null(breaks) & any(PARAM == c("diam_lwr","diam_mid","diam_upr"))){
-    is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
-  # set PDF template
-    if(!is.wholenumber(1/delta)) print("WARNING: For Matrix model application, Delta must be chosen so that 1/delta is an integer")
-    min <- 3/4*pi*(0.5*min(vct.table[,paste0(PARAM,"_1q")])^3) / 10 # 1/10 the value of 25% percentile converted into sphere volume
-    breaks <- min*2^(((1:m)-1)*delta)
-    breaks <- round(2 * (4*breaks/(pi*3))^(1/3),5)
-  }
-
+  # check that breaks cover range of values
   if(max(breaks) < max(vct.table[,paste0(PARAM,"_3q")])) print("WARNING: PDF template doesn't cover the the range of values")
-
-
 
   # Get Time from metadata
   sfl <- get.sfl.table(db)
@@ -103,9 +56,6 @@ size.distribution <- function(db, vct.dir, quantile=c(2.5, 50,97.5),
 
   # Remove outliers from list of files
   vct.table <- subset(vct.table, flag==0)
-
-  # Select on files that contains the population of interest
-  if(!is.null(popname)) vct.table <- vct.table[vct.table$pop == popname,]
 
   # Get Time from metadata
   sfl <- get.sfl.table(db)
@@ -124,7 +74,7 @@ size.distribution <- function(db, vct.dir, quantile=c(2.5, 50,97.5),
   ### create PDF for each sample ###
   ##################################
   i <- 1
-  dist <- list()
+  distribution <- NULL
   for(file.name in vct.list){
 
     #file.name <- vct.list[2]
@@ -144,32 +94,32 @@ size.distribution <- function(db, vct.dir, quantile=c(2.5, 50,97.5),
       opp.evt.ratio <- opp[opp$file == file.name,'opp_evt_ratio']
     volume <- opp.evt.ratio * fr * acq.time
 
-    #retrieve data
+    # retrieve data
     vct <- get.vct.by.file(vct.dir, file.name, quantile=QUANT)
 
-    if (!is.null(popname)) {
-      dat <- vct[vct$pop == popname, PARAM]
-    }else{
-      dat <- vct[vct$pop != 'beads', PARAM]
+    # remove Beads from data
+    dat <- vct[vct$pop != 'beads', c(PARAM,'pop')]
+
+    # Get particle concentration in each bin for each population
+    PSD <-NULL
+    phyto <- unique(dat$pop)
+    for(p in phyto){
+      # get particle count
+      psd <- table(cut(dat[which(dat$pop == p),PARAM], breaks))
+      # Get particle concentration in each bin (10^-3 cells µL-1 or 10^3 cells L-1)
+      psd <- round(1000 * psd / volume, 3)
+      PSD <- rbind(PSD, psd)
     }
 
-    # Get particle count in each bin
-    d <- table(cut(dat, breaks))
+    # add time and population name
+    PSD <- cbind(time, pop=as.character(phyto), PSD)
 
-    # Get particle concentration in each bin (10^-3 cells µL-1 or 10^3 cells L-1)
-    PSD <- round(1000 * d / volume, 3)
-
-    PSD <- tibble(t(PSD))
-    PSD <- add_column(PSD, .before=1, time=time)
-
-    dist[[i]] <- PSD
+    # bind data together
+    distribution <- data.frame(rbind(distribution, PSD),check.names=F)
 
     i <- i + 1
     flush.console()
   }
-
-  distribution <- data.frame(matrix(unlist(dist), nrow=length(dist), byrow=T))
-  colnames(distribution) <- c("time",names(d))
 
   return(distribution)
 
@@ -177,49 +127,103 @@ size.distribution <- function(db, vct.dir, quantile=c(2.5, 50,97.5),
 
 
 
+#' Bin size distribution by time
+#'
+#' @param distribution Size distribution created by size.distribution(). Time format must be compatible with POSIXt class
+#'   Can be either diameter (diam_lwr, diam_mid or diam_upr)
+#'   or carbon quotas (Qc_lwr, Qc_mid or Qc_upr)
+#' @param time.step Time resolution (must be higher than 3 minutes). Default is 1 hour
+#' @param diam.to.Qc Convert diameters into carbon quotas as described in
+#' Menden-Deuer, S. & Lessard, E. J. Carbon to volume relationships for dinoflagellates, diatoms, and other protist plankton.
+#' Limnol. Oceanogr. 45, 569–579 (2000).
+#' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of Menden-Deuer, S. & Lessard, E. J. 2000)
+#' @param abundance.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
+#' @return Size distribution with temporal resolution defined by time.step
+#' @examples
+#' \dontrun{
+#' distribution <- bin.distribution.by.time(distribution, time.step="1 hour")
+#' }
+#' @export bin.distribution.by.time
 
-#####################################
-### Bin size distribution by time ###
-#####################################
+transform.size.distribution <- function(distribution, time.step="1 hour", diam.to.Qc=T, Qc.to.diam=F, abundance.to.biomass=F){
 
-bin.size.distribution.by.time(distribution, time.resolution="1 hour")
+  if(! lubridate::is.POSIXt(distribution$time)){
+  print("Time is not recognized as POSIXt class")
+  stop
+  }
 
-distribution$time <- as.POSIXct(distribution$time, format = "%FT%T", tz="GMT")
-distribution %>%
-        group_by(time = cut(time, breaks=time.resolution)) %>%
-        summarise_all(LAT = mean(LAT, na.rm=T), LON = mean(LON, na.rm=T))
+  # Menden-Deuer, S. & Lessard conversion factors
+  d <- 0.261; e <- 0.860
+  # convert size interval (factors) into data.frame
+  breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1,2)])),",")
+
+  if(Qc.to.diam){
+    #convert Qc into diam using the Menden-Deuer conversion
+    b <- lapply(breaks, function(x) round(2*((3/(4*pi))*(as.numeric(value)/d)^(1/e))^1/3,5))
+    colnames(distribution)[-c(1,2)] <- sub("\\)","\\]", sub("c","",as.character(b)))
+  }
+
+  if(diam.to.Qc){
+    # convert diam into Qc using the Menden-Deuer conversion
+    b <- lapply(breaks, function(x) round(d*(4/3*pi*(0.5*as.numeric(x))^3)^e,5))
+    colnames(distribution)[-c(1,2)] <- sub("\\)","\\]", sub("c","",as.character(b)))
+    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1,2)])),",")
+  }
+
+  if(abundance.to.biomass){
+    # multiply abundance by carbon quotas to get carbon biomass in each size class
+    midval <- unlist(list(lapply(breaks, function(x) mean(as.numeric(x)))))
+    distribution[-c(1,2)] <- sweep(distribution[-c(1,2)], MARGIN=2, midval, `*`)
+  }
+
+  # Calculate the mean in each size class over new time interval
+  dist.bin <- distribution %>%
+        group_by(time = cut(time, breaks=time.step), pop) %>%
+        summarise_all(list(mean))
+
+  # time was converted to factor, and need to be convereted back to POSIXt
+  dist.bin$time <- as.POSIXct(dist.bin$time, tz='GMT')
+
+  return(dist.bin)
+
+}
 
 
 
+#' Plot size distribution
+#'
+#' @param distribution Size distribution created by size.distribution().
+#'   Can be either diameter (diam_lwr, diam_mid or diam_upr)
+#'   or carbon quotas (Qc_lwr, Qc_mid or Qc_upr)
+#'   Must be based on carbon quotas (Qc_lwr, Qc_mid or Qc_upr) to be meaningful
+#' @param lwd line width for the lines
+#' @return Plot carbon biomass in each size class
+#' @examples
+#' \dontrun{
+#' plot.size.distribution(distribution)
+#' }
+#' @export plot.biomass.distribution
+
+plot.size.distribution <- function(distribution, lwd=4){
+
+    group.colors <- c(unknown="grey", prochloro=viridis::viridis(4)[1],synecho=viridis::viridis(4)[2],picoeuk=viridis::viridis(4)[3], croco=viridis::viridis(4)[4])
+
+    # convert time as factor to be compatible with plotting
+    distribution$time <- as.factor(distribution$time)
+
+    # format dat to be compatible with scatter3d
+    d <- reshape2::melt(distribution)
+
+    # order data by time
+    d <- d[order(d$time),]
 
 
+    plotly::plot_ly() %>%
+          plotly::add_trace(data=d, x= ~ time, y = ~ variable, z = ~ value, type='scatter3d', mode='lines', line=list(width=lwd), color=~pop, colors=group.colors) %>%
+          plotly::layout(scene = list(xaxis = list(autorange = "reversed"),
+                              yaxis = list(title="size classes"),
+                              zaxis = list(title="")))
+                              #"Carbon (mg L<sup>-1</sup>"
+                              #"Abundance (cells µL<sup>-1</sup>"
 
-
-
-
-
-
-##############################
-### PLOT size distribution ###
-##############################
-plot.size.distribution <- function(distribution, log=TRUE, smooth=0){
-
-    require(plotly)
-    require(oce)
-
-    # smooth distribution
-    param <- data.frame(oce::matrixSmooth(as.matrix(distribution[,-c(1)]), pass=smooth))
-    colnames(param) <- colnames(distribution)[-1]
-
-    abundance <- t(as.matrix(param))
-    time <- as.POSIXct(distribution$time, format = "%FT%T", tz="GMT")
-    size <- as.factor(colnames(distribution)[-1])
-
-    p <- plotly::plot_ly(data=param, x= ~ time, y = ~ size, z = ~ abundance) %>%
-                    add_surface() %>%
-                    layout(scene = list(xaxis = list(autorange = "reversed")))
-
-    if(log) p <- p %>% plotly::layout(scene = list(yaxis = list(type = "log",title=paste(varname))))
-
-    return(p)
 }
