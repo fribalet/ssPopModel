@@ -74,7 +74,7 @@ size.distribution <- function(db, vct.dir, quantile=50,
   ### create PDF for each sample ###
   ##################################
   i <- 1
-  distribution <- NULL
+  dist <- NULL
   for(file.name in vct.list){
 
     #file.name <- vct.list[2]
@@ -115,11 +115,16 @@ size.distribution <- function(db, vct.dir, quantile=50,
     PSD <- cbind(time, pop=as.character(phyto), PSD)
 
     # bind data together
-    distribution <- data.frame(rbind(distribution, PSD),check.names=F)
+    dist <- data.frame(rbind(dist, PSD),check.names=F)
 
     i <- i + 1
     flush.console()
   }
+
+  #convert data frame to tibble, with correct classes (tibble wrongly assumed the class of each column, arghh!!!!)
+  dist$time <- as.POSIXct(dist$time,format = "%FT%T", tz = "GMT")
+  distribution[,-c(1,2)] <- mutate_all(distribution[,-c(1,2)], function(x) as.numeric(as.character(x)))
+  distribution[,2] <- mutate(distribution[,2])
 
   return(distribution)
 
@@ -206,6 +211,7 @@ transform.size.distribution <- function(distribution, time.step="1 hour", diam.t
 
 plot.size.distribution <- function(distribution, lwd=4){
 
+    require(plotly)
     group.colors <- c(unknown="grey", prochloro=viridis::viridis(4)[1],synecho=viridis::viridis(4)[2],picoeuk=viridis::viridis(4)[3], croco=viridis::viridis(4)[4])
 
     # convert time as factor to be compatible with plotting
@@ -216,7 +222,6 @@ plot.size.distribution <- function(distribution, lwd=4){
 
     # order data by time
     d <- d[order(d$time),]
-
 
     plotly::plot_ly() %>%
           plotly::add_trace(data=d, x= ~ time, y = ~ variable, z = ~ value, type='scatter3d', mode='lines', line=list(width=lwd), color=~pop, colors=group.colors) %>%
