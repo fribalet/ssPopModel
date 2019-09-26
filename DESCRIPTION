@@ -9,3 +9,4 @@ Depends: DEoptim, popcycle
 Suggests: zoo, rgl
 License: GPL-2
 URL: http://seaflow.ocean.washington.edu
+RoxygenNote: 6.1.1

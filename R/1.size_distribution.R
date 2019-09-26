@@ -74,7 +74,7 @@ size.distribution <- function(db, vct.dir, quantile=50,
   ### create PDF for each sample ###
   ##################################
   i <- 1
-  dist <- NULL
+  distribution <- NULL
   for(file.name in vct.list){
 
     #file.name <- vct.list[2]
@@ -86,7 +86,7 @@ size.distribution <- function(db, vct.dir, quantile=50,
     # retrieve volume of virtual correct
       # flow rate (mL min-1)
       fr <- flowrate(sfl[sfl$file == file.name, 'stream_pressure'], inst=inst)$flow_rate
-      # (µL min-1)
+      # convert to µL min-1
       fr <- fr * 1000
       # acquisition time (min)
       acq.time <- sfl[sfl$file == file.name, 'file_duration']/60
@@ -115,14 +115,14 @@ size.distribution <- function(db, vct.dir, quantile=50,
     PSD <- cbind(time, pop=as.character(phyto), PSD)
 
     # bind data together
-    dist <- data.frame(rbind(dist, PSD),check.names=F)
+    distribution <- data.frame(rbind(distribution, PSD),check.names=F)
 
     i <- i + 1
     flush.console()
   }
 
   #convert data frame to tibble, with correct classes (tibble wrongly assumed the class of each column, arghh!!!!)
-  dist$time <- as.POSIXct(dist$time,format = "%FT%T", tz = "GMT")
+  distribution$time <- as.POSIXct(distribution$time,format = "%FT%T", tz = "GMT")
   distribution[,-c(1,2)] <- mutate_all(distribution[,-c(1,2)], function(x) as.numeric(as.character(x)))
   distribution[,2] <- mutate(distribution[,2])
 

@@ -1,9 +1,3 @@
-# cruise <- "SCOPE_10"
-# model.output <- "/Volumes/ribalet/Cell_Division/"
-# phyto <- 'prochloro'
-# cat <- 57# number of size bin
-# filelist <- list.files(paste(model.output,cruise,sep="/"),pattern=paste(phyto,"_modelHD_growth_",cruise,"_Ncat",cat,sep=""), full.names=T)
-
 merge.model.output <- function(output.files){
 
     require(plotrix)
