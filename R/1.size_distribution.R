@@ -33,9 +33,6 @@ size.distribution <- function(db, vct.dir, quantile=50,
   # Remove outliers from list of files
   vct.table <- subset(vct.table, flag==0)
 
-  # check that breaks cover range of values
-  if(max(breaks) < max(vct.table[,paste0(PARAM,"_3q")])) print("WARNING: PDF template doesn't cover the the range of values")
-
   # Get Time from metadata
   sfl <- get.sfl.table(db)
 
