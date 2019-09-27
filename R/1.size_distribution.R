@@ -117,11 +117,11 @@ size.distribution <- function(db, vct.dir, quantile=50,
     i <- i + 1
     flush.console()
   }
-
   #convert data frame to tibble, with correct classes (tibble wrongly assumed the class of each column, arghh!!!!)
+  distribution <- as_tibble(distribution)
   distribution$time <- as.POSIXct(distribution$time,format = "%FT%T", tz = "GMT")
+  distribution$pop <- as.character(distribution$pop)
   distribution[,-c(1,2)] <- mutate_all(distribution[,-c(1,2)], function(x) as.numeric(as.character(x)))
-  distribution[,2] <- mutate(distribution[,2])
 
   return(distribution)
 
