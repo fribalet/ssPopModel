@@ -161,7 +161,7 @@ transform.size.distribution <- function(distribution, time.step="1 hour", diam.t
 
   if(Qc.to.diam){
     #convert Qc into diam using the Menden-Deuer conversion
-    b <- lapply(breaks, function(x) round(2*((3/(4*pi))*(as.numeric(value)/d)^(1/e))^1/3,5))
+    b <- lapply(breaks, function(x) round(2*((3/(4*pi))*(as.numeric(x)/d)^(1/e))^1/3,5))
     colnames(distribution)[-c(1,2)] <- sub("\\)","\\]", sub("c","",as.character(b)))
   }
 
