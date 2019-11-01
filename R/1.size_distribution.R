@@ -198,7 +198,8 @@ transform.size.distribution <- function(distribution, time.step="1 hour", diam.t
 #'   Can be either diameter (diam_lwr, diam_mid or diam_upr)
 #'   or carbon quotas (Qc_lwr, Qc_mid or Qc_upr)
 #'   Must be based on carbon quotas (Qc_lwr, Qc_mid or Qc_upr) to be meaningful
-#' @param lwd line width for the lines
+#' @param lwd Line width for the lines
+#' @param z.type "lin" for linear scaling of z values, "log" for logarithmic scaling
 #' @return Plot carbon biomass in each size class
 #' @examples
 #' \dontrun{
@@ -206,7 +207,7 @@ transform.size.distribution <- function(distribution, time.step="1 hour", diam.t
 #' }
 #' @export plot.biomass.distribution
 
-plot.size.distribution <- function(distribution, lwd=4){
+plot.size.distribution <- function(distribution, lwd=4, z.type='log'){
 
     require(plotly)
     group.colors <- c(unknown="grey", prochloro=viridis::viridis(4)[1],synecho=viridis::viridis(4)[2],picoeuk=viridis::viridis(4)[3], croco=viridis::viridis(4)[4])
@@ -224,7 +225,7 @@ plot.size.distribution <- function(distribution, lwd=4){
           plotly::add_trace(data=d, x= ~ time, y = ~ variable, z = ~ value, type='scatter3d', mode='lines', line=list(width=lwd), color=~pop, colors=group.colors) %>%
           plotly::layout(scene = list(xaxis = list(autorange = "reversed"),
                               yaxis = list(title="size classes"),
-                              zaxis = list(title="")))
+                              zaxis = list(title="", type= z.type)))
                               #"Carbon (mg L<sup>-1</sup>"
                               #"Abundance (cells µL<sup>-1</sup>"
 

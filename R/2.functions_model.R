@@ -4,7 +4,7 @@
 #Construct matrix A(t) for each time step within an hour based on delta and gamma at each 10 minute time intervals then construct B(t) which is A(t)'s multiplied for the given hour
 #multiply B(t)*w(t) to get the projection to next hour dist if desired
 
-.matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star, c, d, resol){
+.matrix.conct.fast <- function(hr, Einterp, volbins, gmax, dmax, b, E_star, resol){
 
 		########################
 		## INITIAL PARAMETERS ##
@@ -24,23 +24,13 @@
 		##########################
 		## Respiration FUNCTION ## fraction of cells that shrink between t and t + dt
 		##########################
-				# Assumptions:
-				# 1) rate of respiration is a function of growth rate
-				# 2) rate of respiration constant (h-1) constant over the nighttime period (polysaccharide is drawn down linearly over the nighttime period)
-
-				# From Szul et al., 2019 mSystems. At Pro growth rate of 0.44 d-1 (or 0.0183 h-1), proportion of carbon storage to total carbon ~ 30%
-				# From Zavrel et al. 2019 eLife. At Synechocystis growth rate of 44 d-1, proportion of carbon storage to total carbon ~ 7.4 % [100*(1.35 * 0.44/24 + 0.05018)]
-						# Simplification: reg <- lm(seq(0.084, 0.199, length.out=10) ~ seq(0.025, 0.11, length.out=10))#
-				# converson Synechocystis to Prochlorococcus ~ 4 [0.3 / (1.35 * 0.44/24 + 0.05018)]
-		conv <- 0.3 / (1.35 * 0.44/24 + 0.05018)
-		d <-  conv*(1.35294 * mean(y) + 0.05018) # proportion of carbon storage to total carbon
- 		resp <- d * mean(y)
-		resp <- c * (resp - y) # transform to probability to decrease size over time period
-		resp[which(resp < y)] <- 0 # probablity to decrease size class is 0 when growth rate > respiration rate
-
-			# plot(y); points(resp,col=2); abline(h=c(mean(y), mean(resp)),col=c(1,2))
-			# print(mean(resp)/mean(y))
-
+			# Assumptions:
+			# 1) carbon storage represents 30% of fixed carbon by photosynthesis
+            # 2) all carbon storage consumed at night
+			# 3) rate of respiration constant (h-1) constant over the nighttime period (polysaccharide is drawn down linearly over the nighttime period)
+        resp <-  mean(y[which(y > 0)]) * 0.3 - y # 30% carbon respired over a 24h-period, transformed to probability to shrink
+		resp[which(resp < 0)] <- 0 # probablity to decrease size class is 0 when growth > respiration
+   
 		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
 		####################
@@ -50,28 +40,30 @@
 		# del[1:(j-1)] <- 0
 				if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
 					}else{delta <- matrix(del, 1, m)}
-
+        
 		## PLOT GAMMA AND DELTA
 		# par(mfrow=c(3,1))
 		# plot(y, type='p', col='red', xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)")); points(resp,col='lightblue')
 		# plot(Einterp, y, type='p', col='red', xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)")); points(Einterp, resp,col='lightblue')
 		# plot(volbins, del, type='p', col='red', xlab="Cell volume", ylab=paste("Delta (per",60*dt,"min)"))
 
-		################################
+		#########################
+		## ALLOMETRIC FUNCTION ## 
+		#########################
+		allo <- rep(1,length(volbins)) # no allometric relationship
+
+  
+        ################################
 		## CONSTRUCTION SPARSE MATRIX ##
 		################################
-		stasis_ind <- seq(1,m^2,by=m+1) # Diagonal stasis (0)
-		growth_ind <- seq(2,m^2,by=m+1) # Subdiagonal growth (-1)
-		resp_ind <- seq(m+1, m^2, by=m+1) # superdiagonal (+1)
-		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) # Superdiagonal division (j-1)
-		n <- length(volbins)
+    	stasis_ind <- seq(1,m^2,by=m+1) # Diagonal (0)stasis 
+		growth_ind <- seq(2,m^2,by=m+1) # Subdiagonal (-1) growth 
+		resp_ind <- seq(m+1, m^2, by=m+1) # Superdiagonal (+1) respiration 
+		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) # Superdiagonal (j-1) division
 
 		for(t in 1:(1/dt)){
 			#t <- 1
 			A <- matrix(data=0,nrow=m, ncol=m)
-			allo <- d * (volbins^-1.3) # allometric relationship of carbon metabolism
-			allo <- log(allo/ min(allo))
-			#allo[which(allo > 5)]<- 5 # to limit difference in rate between smallest and largest size
 			gamma <- y[t+hr/dt]*allo
 			respiration <- resp[t+hr/dt]*allo
 
@@ -85,12 +77,12 @@
 			A[growth_ind] <- gamma[1:(m-1)]*(1-delta[1:(m-1)])*(1-respiration[1:(m-1)])
 
 			# Division (first row and superdiagonal j-1)
-			A[1,1:(j-1)] <- 2 * delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
+			A[1,1:(j-1)] <- A[1,1:(j-1)] + 2 * delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
 			A[div_ind] <- 2 * delta[j:m] # The cell division terms for large (i > = j) phytoplankton
 
 			# Respiration (superdiagonal)
-			A[1,2] <- A[1,2]  + respiration[1]
-			A[resp_ind] <- respiration[-1]*(1-delta[-1])*(1-gamma[-1])
+	        A[1,2] <- A[1,2]  + respiration[1]
+	        A[resp_ind] <- respiration[-1]*(1-delta[-1])*(1-gamma[-1])
 
 					if(t == 1){B <- A}else{B <- A %*% B}
 			}
@@ -100,32 +92,41 @@
 
 
 ###############
-## sigma.lsq ##
+## sigma.hl ##
 ###############
-# This function calculates the sum of squares of the of the differences between the hourly observations and the model given the specified parameters
-# This function returns a column vector - called by "determine.opt.para" for the optimization.
+# This function calculates the Hubert Loss (1954) between the hourly observations and the model given the specified parameters
 
-	.sigma.lsq <- function(params, Einterp, N.dist, V.hists, resol){
+	.sigma.hl <- function(params, Einterp, N.dist, V.hists, resol){
 
 				time.interval <- median(diff(as.numeric(colnames(V.hists))))
 				res <- which(diff(as.numeric(colnames(V.hists))) == time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
 				dim <- dim(N.dist)
-				sigma <- matrix(NA, dim[1], dim[2]-1) # preallocate sigma
+				sigma <- matrix(NA, 1, dim[2]-1) # preallocate sigma
 				TotN <- as.matrix(colSums(N.dist))
 				volbins <- as.numeric(row.names(V.hists))
+           
+                gmax <- as.numeric(params[1]) 
+                dmax <- as.numeric(params[2]) / 10
+                b <- as.numeric(params[3]) * 10
+                E_star <- as.numeric(params[4]) * 1000
 
+        delta <- 1.345
 			for(hr in res){
-					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=as.numeric(params[1]), dmax=as.numeric(params[2]), b=as.numeric(params[3]), E_star=as.numeric(params[4]),  c=as.numeric(params[5]), d=as.numeric(params[6]),resol=resol)
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
 					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
-					sigma[,hr] <-  (N.dist[, hr+1] - round(TotN[hr+1]*wt.norm))^2 # ABSOLUTE observed value - fitted value
-					}
-			sigma <- colSums(sigma)/colSums(N.dist[,-1])
-			sigma <- mean(sigma, na.rm=T)
+                    # Huber loss calculation
+                    a <- N.dist[, hr+1] - round(TotN[hr+1]*wt.norm,1)
+                    loss <- ifelse(abs(a) <= delta,
+                                       0.5 * a^2,
+                                       delta * (abs(a) - 0.5 * delta))
+                    sigma[,hr] <- mean(loss)
+                    }
+            sigma <- sum(sigma)/100 ## HUBER loss
+
 			return(sigma)
 
 }
-
 
 ########################
 ## determine.opt.para ##
@@ -157,11 +158,11 @@
 		##################
 		print("Optimizing model parameters")
 
-		f <- function(params) .sigma.lsq(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, resol=resol)
+		f <- function(params) .sigma.hl(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, resol=resol)
 
-		opt <- DEoptim(f, lower=c(1e-6,1e-6,1e-6,1,1e-6,1e-6), upper=c(1,1,15,max(Einterp),15,10), control=DEoptim.control(itermax=1000, reltol=1e-3, trace=10, steptol=100, strategy=2, parallelType=0))
+		opt <- cma_es(par=c(0.5,0.5,0.5,0.5),f, lower=c(0,0,0,0), upper=c(1,1,1,1))
 
-		params <- opt$optim$bestmem
+		params <- opt$par
 		gmax <- params[1]
 		dmax <- params[2]
 		b <- params[3]
