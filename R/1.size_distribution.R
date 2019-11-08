@@ -140,6 +140,7 @@ size.distribution <- function(db, vct.dir, quantile=50,
 #' Limnol. Oceanogr. 45, 569–579 (2000).
 #' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of Menden-Deuer, S. & Lessard, E. J. 2000)
 #' @param abundance.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
+#' @param size.interval.to.mean Transform size class intervals to mean values (i.e. convert breaks (min, max] to mean). 
 #' @return Size distribution with temporal resolution defined by time.step
 #' @examples
 #' \dontrun{
@@ -147,7 +148,7 @@ size.distribution <- function(db, vct.dir, quantile=50,
 #' }
 #' @export bin.distribution.by.time
 
-transform.size.distribution <- function(distribution, time.step="1 hour", diam.to.Qc=T, Qc.to.diam=F, abundance.to.biomass=F){
+transform.size.distribution <- function(distribution, time.step="1 hour", diam.to.Qc=T, Qc.to.diam=F, abundance.to.biomass=F,size.interval.to.mean=F){
 
   if(! lubridate::is.POSIXt(distribution$time)){
   print("Time is not recognized as POSIXt class")
@@ -176,6 +177,13 @@ transform.size.distribution <- function(distribution, time.step="1 hour", diam.t
     # multiply abundance by carbon quotas to get carbon biomass in each size class
     midval <- unlist(list(lapply(breaks, function(x) mean(as.numeric(x)))))
     distribution[-c(1,2)] <- sweep(distribution[-c(1,2)], MARGIN=2, midval, `*`)
+  }
+
+  if(size.interval.to.mean){
+    # transform size class intervals to mean values (i.e. convert breaks (min, max] to mean). 
+    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1,2)])),",")
+    midval <- unlist(list(lapply(breaks, function(x) mean(as.numeric(x)))))
+    colnames(distribution)[-c(1,2)] <- midval
   }
 
   # Calculate the mean in each size class over new time interval

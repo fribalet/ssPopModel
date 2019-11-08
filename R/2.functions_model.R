@@ -167,9 +167,7 @@
 		dmax <- params[2]
 		b <- params[3]
 		E_star <- params[4]
-		c <- params[5]
-		d <- params[6]
-		resnorm <- opt$optim$bestval
+		resnorm <- opt$value
 
 		####################################################
 		## Calculate projections from best fit parameters ##
@@ -183,7 +181,7 @@
 		volbins <- as.numeric(row.names(V.hists))
 
 		for(hr in res){
-					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, dmax=dmax,b=b, E_star=E_star,c=c, d=d, resol=resol)
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, dmax=dmax,b=b, E_star=E_star,resol=resol)
 					Nproj[,hr+1] <- round(B %*% Nproj[,hr]) # calculate numbers of individuals
 					Vproj[,hr+1] <- B %*% Vproj[,hr] # calculate the projected size-frequency distribution
 					Vproj[,hr+1] <- Vproj[,hr+1]/sum(Vproj[,hr+1]) # normalize distribution so sum = 1
