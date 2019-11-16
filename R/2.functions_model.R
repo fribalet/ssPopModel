@@ -9,10 +9,10 @@
 		########################
 		## INITIAL PARAMETERS ##
 		########################
-		t.nodiv <- 0 # no division during the first X hours after dawn
+		t.nodiv <- 6 # no division during the first X hours after dawn
 		dt <- resol/60
 		j <- findInterval(2 * volbins[1], volbins)
-		m <- length(volbins) ## dimensions of the squared matrix
+		m <- length(volbins) # dimensions of the squared matrix
 
 		####################
 		## GAMMA FUNCTION ## fraction of cells that grow into next size class between t and t + dt
@@ -24,33 +24,25 @@
 		##########################
 		## Respiration FUNCTION ## fraction of cells that shrink between t and t + dt
 		##########################
-			# Assumptions:
-			# 1) carbon storage represents 30% of fixed carbon by photosynthesis
-            # 2) all carbon storage consumed at night
-			# 3) rate of respiration constant (h-1) constant over the nighttime period (polysaccharide is drawn down linearly over the nighttime period)
+				# Assumptions:
+				# 1) rate of respiration is a function of photosynthetic rate (gamma function)
+				# 2) rate of respiration constant (h-1) constant over the nighttime period (polysaccharide is drawn down linearly over the nighttime period)
         resp <-  mean(y[which(y > 0)]) * 0.3 - y # 30% carbon respired over a 24h-period, transformed to probability to shrink
 		resp[which(resp < 0)] <- 0 # probablity to decrease size class is 0 when growth > respiration
-   
+
 		####################
 		## DELTA FUNCTION ## fraction of cells that divide between t and t + dt
 		####################
-		a <- 4 	# NOTE: most values of volbins need to be < 1 for compatibility issue with the Delta function # based on HYNES et al. 2015
-		del <- dmax * (a*volbins/max(volbins))^b / (1 + (a*volbins/max(volbins))^b)
+		# NOTE: most values of volbins need to be < 1 for compatibility issue with the Delta function # based on HYNES et al. 2015
+		v <- volbins - volbins[j-1]
+        del <- dmax * (v)^b / (1 + (v)^b)
 
 		# del[1:(j-1)] <- 0
 				if(hr <= t.nodiv){delta <- matrix(data=0, 1, m)
 					}else{delta <- matrix(del, 1, m)}
-        
-		## PLOT GAMMA AND DELTA
-		# par(mfrow=c(3,1))
-		# plot(y, type='p', col='red', xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)")); points(resp,col='lightblue')
-		# plot(Einterp, y, type='p', col='red', xlab="Radiations", ylab=paste("Gamma (per",60*dt,"min)")); points(Einterp, resp,col='lightblue')
-		# plot(volbins, del, type='p', col='red', xlab="Cell volume", ylab=paste("Delta (per",60*dt,"min)"))
-
-		#########################
-		## ALLOMETRIC FUNCTION ## 
-		#########################
-		allo <- rep(1,length(volbins)) # no allometric relationship
+        # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so are prohibited to divide
+        delta[1:(j-1)] <- 0
+    
 
   
         ################################
@@ -64,25 +56,22 @@
 		for(t in 1:(1/dt)){
 			#t <- 1
 			A <- matrix(data=0,nrow=m, ncol=m)
-			gamma <- y[t+hr/dt]*allo
-			respiration <- resp[t+hr/dt]*allo
-
-			# plot(volbins, gamma); abline(h=c(y[t+hr/dt] , mean(gamma)), col=c(1,2));points(volbins, respiration,col=3)
+			gamma <- y[t+hr/dt]
+			respiration <- resp[t+hr/dt]*0 # no respiration
 
 			# Stasis (main diagonal)
 			A[stasis_ind] <- (1-delta)*(1-gamma)*(1-respiration) # the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
-			A[m,m] <- (1-delta[m])*(1-respiration[m])
+			A[m,m] <- (1-delta[m])*(1-respiration)
 
 			# Cell growth (subdiagonal)
-			A[growth_ind] <- gamma[1:(m-1)]*(1-delta[1:(m-1)])*(1-respiration[1:(m-1)])
+			A[growth_ind] <- gamma*(1-delta[1:(m-1)])*(1-respiration)
 
 			# Division (first row and superdiagonal j-1)
-			A[1,1:(j-1)] <- A[1,1:(j-1)] + 2 * delta[1:(j-1)] # Top row; Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so newly divided are put in the smallest size class.
 			A[div_ind] <- 2 * delta[j:m] # The cell division terms for large (i > = j) phytoplankton
 
 			# Respiration (superdiagonal)
-	        A[1,2] <- A[1,2]  + respiration[1]
-	        A[resp_ind] <- respiration[-1]*(1-delta[-1])*(1-gamma[-1])
+			A[1,2] <- A[1,2]  + respiration
+			A[resp_ind] <- respiration*(1-delta[2:m])*(1-gamma)
 
 					if(t == 1){B <- A}else{B <- A %*% B}
 			}
@@ -90,39 +79,72 @@
 		return(B)
 }
 
-
+############### 
+## sigma.lsq ##
 ###############
-## sigma.hl ##
-###############
-# This function calculates the Hubert Loss (1954) between the hourly observations and the model given the specified parameters
+# This function calculates the sum of squares of the of the differences between the hourly observations and the model given the specified parameters
+# This function returns a column vector - called by "determine.opt.para" for the optimization.
 
-	.sigma.hl <- function(params, Einterp, N.dist, V.hists, resol){
+	.sigma.lsq <- function(params, Einterp, distribution, resol){
 
-				time.interval <- median(diff(as.numeric(colnames(V.hists))))
-				res <- which(diff(as.numeric(colnames(V.hists))) == time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
-				dim <- dim(N.dist)
-				sigma <- matrix(NA, 1, dim[2]-1) # preallocate sigma
-				TotN <- as.matrix(colSums(N.dist))
-				volbins <- as.numeric(row.names(V.hists))
-           
+				time.interval <- median(diff(distribution$time))
+				res <- which(diff(distribution$time) == time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
+                PDF <- t(distribution[,-c(1)])
+				dim <- dim(PDF)
+				sigma <- matrix(NA, dim[1], dim[2]-1) # preallocate sigma
+				TotN <- as.matrix(colSums(PDF))
+                volbins <- as.numeric(rownames(PDF))
+        
                 gmax <- as.numeric(params[1]) 
-                dmax <- as.numeric(params[2]) / 10
+                dmax <- as.numeric(params[2])
                 b <- as.numeric(params[3]) * 10
                 E_star <- as.numeric(params[4]) * 1000
 
-        delta <- 1.345
 			for(hr in res){
 					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
-					wt <- B %*% V.hists[,hr] # calculate the projected size-frequency distribution
+					wt <- B %*% PDF[,hr]/max(PDF[,hr]) # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
-                    # Huber loss calculation
-                    a <- N.dist[, hr+1] - round(TotN[hr+1]*wt.norm,1)
-                    loss <- ifelse(abs(a) <= delta,
+					sigma[,hr] <-  (PDF[,hr+1] - round(TotN[hr+1]*wt.norm))^2 # ABSOLUTE observed value - fitted value
+					}
+			sigma <- colSums(sigma)/colSums(PDF[,-1])
+			sigma <- mean(sigma, na.rm=T)
+			return(sigma)
+
+}
+###############
+## sigma.hl ##
+###############
+# This function calculates the sum of squares of the of the differences between the hourly observations and the model given the specified parameters
+# using Hubert Loss (1954) approach.
+
+	.sigma.hl <- function(params, Einterp, distribution, resol){
+
+			    time.interval <- median(diff(distribution$time))
+				res <- which(diff(distribution$time) == time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
+                PDF <- t(distribution[,-c(1)])
+				dim <- dim(PDF)
+				sigma <- matrix(NA, 1, dim[2]-1) # preallocate sigma
+				TotN <- as.matrix(colSums(PDF))
+                volbins <- as.numeric(rownames(PDF))
+        
+                gmax <- as.numeric(params[1]) 
+                dmax <- as.numeric(params[2]) 
+                b <- as.numeric(params[3]) * 10
+                E_star <- as.numeric(params[4]) * 1000
+
+        d <- 1.345
+			for(hr in res){
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
+					wt <- B %*% PDF[,hr]/max(PDF[,hr]) # calculate the projected size-frequency distribution
+					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
+                  # Huber loss calculation
+                    a <- PDF[,hr+1] - round(TotN[hr+1]*wt.norm)
+                    loss <- ifelse(abs(a) <= d,
                                        0.5 * a^2,
-                                       delta * (abs(a) - 0.5 * delta))
-                    sigma[,hr] <- mean(loss)
-                    }
-            sigma <- sum(sigma)/100 ## HUBER loss
+                                       d * (abs(a) - 0.5 * d))
+                    sigma[,hr] <- mean(loss, na.rm=T)
+                     }
+            sigma <- sum(sigma, na.rm=T)/100 ## HUBER loss
 
 			return(sigma)
 
@@ -132,7 +154,7 @@
 ## determine.opt.para ##
 ########################
 
-.determine.opt.para <- function(V.hists,N.dist,Edata,resol){
+.determine.opt.para <- function(distribution,Edata,resol){
 
 		require(DEoptim)
 
@@ -158,48 +180,50 @@
 		##################
 		print("Optimizing model parameters")
 
-		f <- function(params) .sigma.hl(params=params, Einterp=Einterp, N.dist=N.dist, V.hists=V.hists, resol=resol)
+		f <- function(params) .sigma.lsq(params=params, Einterp=Einterp, distribution, resol=resol)
+		#f <- function(params) .sigma.hl(params=params, Einterp=Einterp, distribution, resol=resol)
 
+		opt <- DEoptim(f, lower=c(0,0,0,0), upper=c(1,1,1,1), control=DEoptim.control(itermax=1000, reltol=1e-3, trace=10, steptol=100, strategy=2, parallelType=0))
+		params <- opt$optim$bestmem
+        gmax <- as.numeric(params[1]) 
+        dmax <- as.numeric(params[2])
+        b <- as.numeric(params[3]) * 10
+        E_star <- as.numeric(params[4]) * 1000
+		resnorm <- opt$optim$bestval
+		
 		opt <- cma_es(par=c(0.5,0.5,0.5,0.5),f, lower=c(0,0,0,0), upper=c(1,1,1,1))
-
 		params <- opt$par
-		gmax <- params[1]
-		dmax <- params[2]
-		b <- params[3]
-		E_star <- params[4]
+        gmax <- as.numeric(params[1]) 
+        dmax <- as.numeric(params[2])
+        b <- as.numeric(params[3]) * 10
+        E_star <- as.numeric(params[4]) * 1000
 		resnorm <- opt$value
 
 		####################################################
 		## Calculate projections from best fit parameters ##
 		####################################################
 		print(params)
-
-		res <- which(diff(as.numeric(colnames(V.hists))) == time.interval) # select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
-		Vproj <- V.hists
-		Nproj <- N.dist
-		mu_N <- matrix(nrow=1,ncol=dim(V.hists)[2])
-		volbins <- as.numeric(row.names(V.hists))
-
+		res <- which(diff(distribution$time) == time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
+        Nproj <- t(distribution[,-c(1)])
+		TotN <- as.matrix(colSums(Nproj))
+        volbins <- as.numeric(rownames(Nproj))
+        
 		for(hr in res){
-					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, dmax=dmax,b=b, E_star=E_star,resol=resol)
+					B <- .matrix.conct.fast(hr=hr-1, Einterp=Einterp, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
 					Nproj[,hr+1] <- round(B %*% Nproj[,hr]) # calculate numbers of individuals
-					Vproj[,hr+1] <- B %*% Vproj[,hr] # calculate the projected size-frequency distribution
-					Vproj[,hr+1] <- Vproj[,hr+1]/sum(Vproj[,hr+1]) # normalize distribution so sum = 1
-					mu_N[,hr+1] <- log(sum(Nproj[,hr+1])/sum(Nproj[,hr]))/
-								((as.numeric(colnames(Nproj)[hr+1])-as.numeric(colnames(Nproj)[hr]))/(time.interval))
-						}
-		Nproj <- colSums(Nproj)
-		colnames(mu_N) <- colnames(Vproj)
+					}
+		colnames(Nproj) <- colnames(distribution)
 
 		#############################
 		## Growth rate calculation ##
 		#############################
-		d.mu_N <- 24*mean(mu_N[-c(1:2)], na.rm=T)
+		mu_N <- round(diff(log(colSums(Nproj[,],na.rm=T)))[-c(1,24)],3)/ as.numeric(diff(distribution$time)[-c(1,24)])
+		d.mu_N <- 24*mean(mu_N, na.rm=T)
 		print(paste("daily growth rate=",round(d.mu_N,2)))
 
-		modelresults <- data.frame(cbind(gmax,dmax,b,E_star,c,resnorm), row.names=NULL)
+		modelresults <- data.frame(cbind(gmax,dmax,b,E_star,resnorm), row.names=NULL)
 
-		modelproj <- list(modelresults, mu_N, Vproj, Nproj)
-		names(modelproj) <- c("modelresults", "mu_N","Vproj","Nproj")
+		modelproj <- list(modelresults, Nproj)
+		names(modelproj) <- c("modelresults","Nproj")
 		return(modelproj)
 }

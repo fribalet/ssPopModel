@@ -131,9 +131,8 @@ size.distribution <- function(db, vct.dir, quantile=50,
 
 #' Bin size distribution by time
 #'
-#' @param distribution Size distribution created by size.distribution(). Time format must be compatible with POSIXt class
-#'   Can be either diameter (diam_lwr, diam_mid or diam_upr)
-#'   or carbon quotas (Qc_lwr, Qc_mid or Qc_upr)
+#' @param distribution Data frame of size distribution over time, (x time; y size classes). First column must be time (POSIXt class object), second column must name of the population; other columns represent the different size classes.
+#'   Size classes can represent either diameter or carbon quota (assuming spherical particles).
 #' @param time.step Time resolution (must be higher than 3 minutes). Default is 1 hour
 #' @param diam.to.Qc Convert diameters into carbon quotas as described in
 #' Menden-Deuer, S. & Lessard, E. J. Carbon to volume relationships for dinoflagellates, diatoms, and other protist plankton.
@@ -202,10 +201,8 @@ transform.size.distribution <- function(distribution, time.step="1 hour", diam.t
 
 #' Plot size distribution
 #'
-#' @param distribution Size distribution created by size.distribution().
-#'   Can be either diameter (diam_lwr, diam_mid or diam_upr)
-#'   or carbon quotas (Qc_lwr, Qc_mid or Qc_upr)
-#'   Must be based on carbon quotas (Qc_lwr, Qc_mid or Qc_upr) to be meaningful
+#' @param distribution Data frame of size distribution over time, (x time; y size classes). First column must be time (POSIXt class object), second column must name of the population; other columns represent the different size classes.
+#'   Size classes can represent either diameter or carbon quota (assuming spherical particles).
 #' @param lwd Line width for the lines
 #' @param z.type "lin" for linear scaling of z values, "log" for logarithmic scaling
 #' @return Plot carbon biomass in each size class
