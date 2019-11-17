@@ -10,12 +10,12 @@
 #' @return Size distribution
 #' @examples
 #' \dontrun{
-#' distribution <- size.distribution(db, vct.dir, quantile=50, popname="synecho", channel="Qc_mid", delta=0.125, m=60)
+#' distribution <- create.PSD(db, vct.dir, quantile=50, popname="synecho", channel="Qc_mid", delta=0.125, m=60)
 #' }
 #' @export 
-size.distribution <- function(db, vct.dir, quantile=50,
-                      param ='Qc_mid',
-                      breaks){
+create.PSD <- function(db, vct.dir, quantile=50, 
+                              param = 'Qc_mid', 
+                              breaks){
 
   QUANT <- as.numeric(quantile)
   PARAM <- as.character(param)
@@ -66,10 +66,10 @@ size.distribution <- function(db, vct.dir, quantile=50,
   # Return list of unique files
   vct.list <- unique(vct.table$file)
 
-  ##################################
-  ### create PDF for each sample ###
-  ##################################
-  i <- 1
+  #####################################
+  ### create PSD for each timepoint ###
+  ######################################
+  i <- 
   distribution <- NULL
   for(file.name in vct.list){
 
@@ -118,16 +118,16 @@ size.distribution <- function(db, vct.dir, quantile=50,
   }
   #convert data frame to tibble, with correct classes (tibble wrongly assumed the class of each column, arghh!!!!)
   distribution <- as_tibble(distribution)
-  distribution$time <- as.POSIXct(distribution$time,format = "%FT%T", tz = "GMT")
-  distribution$pop <- as.character(distribution$pop)
-  distribution[,-c(1,2)] <- mutate_all(distribution[,-c(1,2)], function(x) as.numeric(as.character(x)))
+    distribution$time <- as.POSIXct(distribution$time,format = "%FT%T", tz = "GMT")
+    distribution$pop <- as.character(distribution$pop)
+    distribution[,-c(1,2)] <- mutate_all(distribution[,-c(1,2)], function(x) as.numeric(as.character(x)))
 
   return(distribution)
 
 }
 
 
-#' Bin size distribution by time
+#' Transform size distribution by time
 #'
 #' @param distribution Data frame of size distribution over time, (x time; y size classes). 
 #' First column must be time (POSIXt class object), second column must name of the population; other columns represent the different size classes.
@@ -136,17 +136,20 @@ size.distribution <- function(db, vct.dir, quantile=50,
 #' @param diam.to.Qc Convert diameters into carbon quotas as described in
 #' Menden-Deuer, S. & Lessard, E. J. Carbon to volume relationships for dinoflagellates, diatoms, and other protist plankton.
 #' Limnol. Oceanogr. 45, 569–579 (2000).
-#' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of Menden-Deuer, S. & Lessard, E. J. 2000)
+#' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of diam.to.Qc)
 #' @param abundance.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). 
 #' Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
 #' @param size.interval.to.mean Transform size class intervals to mean values (i.e. convert breaks (min, max] to mean). 
 #' @return Size distribution with temporal resolution defined by time.step
 #' @examples
 #' \dontrun{
-#' distribution <- bin.distribution.by.time(distribution, time.step="1 hour")
+#' distribution <- transform.PSD(distribution, time.step="1 hour")
 #' }
 #' @export
-transform.size.distribution <- function(distribution, time.step="1 hour", diam.to.Qc=T, Qc.to.diam=F, abundance.to.biomass=F,size.interval.to.mean=F){
+transform.PSD <- function(distribution, time.step="1 hour", 
+                                        diam.to.Qc=T, Qc.to.diam=F, 
+                                        abundance.to.biomass=F,
+                                        size.interval.to.mean=F){
 
   if(! lubridate::is.POSIXt(distribution$time)){
   print("Time is not recognized as POSIXt class")
@@ -208,10 +211,10 @@ transform.size.distribution <- function(distribution, time.step="1 hour", diam.t
 #' @return Plot carbon biomass in each size class
 #' @examples
 #' \dontrun{
-#' plot.size.distribution(distribution)
+#' plot.PSD(distribution)
 #' }
 #' @export
-plot.size.distribution <- function(distribution, lwd=4, z.type='log'){
+plot.PSD <- function(distribution, lwd=4, z.type='log'){
 
     require(plotly)
     group.colors <- c(unknown="grey", prochloro=viridis::viridis(4)[1],synecho=viridis::viridis(4)[2],picoeuk=viridis::viridis(4)[3], croco=viridis::viridis(4)[4])
@@ -232,5 +235,4 @@ plot.size.distribution <- function(distribution, lwd=4, z.type='log'){
                               zaxis = list(title="", type= z.type)))
                               #"Carbon (mg L<sup>-1</sup>"
                               #"Abundance (cells µL<sup>-1</sup>"
-
 }

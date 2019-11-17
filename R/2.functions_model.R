@@ -259,7 +259,13 @@ determine.opt.para <- function(distribution=distribution,Edata=Edata,resol=resol
 		f <- function(params) sigma_lsq(params, Edata, distribution, resol)
 		#f <- function(params) sigma_hl(params, Edata, distribution, resol)
 
-		opt <- DEoptim::DEoptim(f, lower=c(0,0,0,0), upper=c(1,1,1,1), control=DEoptim.control(itermax=1000, reltol=1e-3, trace=10, steptol=100, strategy=2, parallelType=1))
+		opt <- DEoptim::DEoptim(f, lower=c(0,0,0,0), upper=c(1,1,1,1), 
+								control=DEoptim.control(itermax=1000, 
+														reltol=1e-3, 
+														trace=10, 
+														steptol=100, 
+														strategy=2, 
+														parallelType=1))
 
 		print(Sys.time()-start)
 
