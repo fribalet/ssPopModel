@@ -8,7 +8,10 @@
 delta <- function(volbins, dmax, b){
 	
 	# NOTE: most values of volbins need to be < 1 for compatibility issue (HYNES et al. 2015)
-	
+	volbins <- as.numeric(volbins)
+	dmax <- as.numeric(dmax)
+	b <- as.numeric(b)
+
 	#find the sie that represent twice the size of the smallest size class
 	j <- findInterval(2 * volbins[1], volbins)
 	
@@ -31,6 +34,11 @@ delta <- function(volbins, dmax, b){
 #' @return gamma
 #' @export 
 gamma_t <- function(Edata, gmax, E_star){
+	
+	Edata <- as.numeric(Edata)
+	gmax <- as.numeric(gmax)
+	E_star <- as.numeric(E_star)
+
 	# y <- (1-exp(-Edata/E_star)) * gmax # original 2003 model
 	y <- (gmax/E_star) * Edata 
 	y[which(Edata >= E_star)] <- gmax
@@ -48,6 +56,8 @@ gamma_t <- function(Edata, gmax, E_star){
 #' @export 
 rho_t <- function(y){
 
+	y <- as.numeric(y)
+	
 	# 30% carbon respired over a 24h-period, transformed to probability to shrink
 	r <-  mean(y[which(y > 0)]) * 0.3 - y 
 
@@ -74,7 +84,7 @@ rho_t <- function(y){
 #' \dontrun{
 #' }
 #' @export
-matrix.conct.fast <- function(hr, Edata, volbins, gmax, dmax, b, E_star, resol){
+matrix_conct_fast <- function(hr, Edata, volbins, gmax, dmax, b, E_star, resol){
 
 		# time interval 
 		dt <- resol/60
@@ -172,7 +182,7 @@ sigma_lsq <- function(params=params, Edata=Edata, distribution=distribution, res
                 E_star <- as.numeric(params[4]) * 1000
 
 			for(hr in res){
-					B <- matrix.conct.fast(hr=hr-1, Edata=Edata, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
+					B <- matrix_conct_fast(hr=hr-1, Edata=Edata, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
 					wt <- B %*% PDF[,hr]/max(PDF[,hr]) # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
 					sigma[,hr] <-  (PDF[,hr+1] - round(TotN[hr+1]*wt.norm))^2 # ABSOLUTE observed value - fitted value
@@ -214,7 +224,7 @@ sigma_hl <- function(params=params, Edata=Edata, distribution=distribution, reso
 
         d <- 1.345
 			for(hr in res){
-					B <- matrix.conct.fast(hr=hr-1, Edata=Edata, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
+					B <- matrix_conct_fast(hr=hr-1, Edata=Edata, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
 					wt <- B %*% PDF[,hr]/max(PDF[,hr]) # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
                   # Huber loss calculation
@@ -241,7 +251,7 @@ sigma_hl <- function(params=params, Edata=Edata, distribution=distribution, reso
 #' \dontrun{
 #' }
 #' @export
-determine.opt.para <- function(distribution=distribution,Edata=Edata,resol=resol){
+determine_opt_para <- function(distribution=distribution,Edata=Edata,resol=resol){
 
 		require(DEoptim)
 		#require(cmaes)
@@ -294,7 +304,7 @@ determine.opt.para <- function(distribution=distribution,Edata=Edata,resol=resol
         volbins <- as.numeric(rownames(Nproj))
         
 		for(hr in res){
-					B <- matrix.conct.fast(hr=hr-1, Edata, volbins, gmax, dmax, b, E_star, resol)
+					B <- matrix_conct_fast(hr=hr-1, Edata, volbins, gmax, dmax, b, E_star, resol)
 					Nproj[,hr+1] <- round(B %*% Nproj[,hr]) # calculate numbers of individuals
 					}
 		

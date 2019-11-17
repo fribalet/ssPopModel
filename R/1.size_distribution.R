@@ -6,14 +6,16 @@
 #' @param param Parameter from VCT to create the size distribution.
 #'   Can be either diameter (diam_lwr, diam_mid or diam_upr)
 #'   or carbon quotas (Qc_lwr, Qc_mid or Qc_upr)
-#' @param breaks Breaks must be a sequence defining the breaks for the size distribution.
+#' @param breaks Breaks must be a vector of values defining the breaks for the size distribution.
 #' @return Size distribution
 #' @examples
 #' \dontrun{
-#' distribution <- create.PSD(db, vct.dir, quantile=50, popname="synecho", channel="Qc_mid", delta=0.125, m=60)
+#'  
+#' breaks <- 'something here'
+#' distribution <- create_PSD(db, vct.dir, quantile=50, channel="Qc_mid", breaks)
 #' }
 #' @export 
-create.PSD <- function(db, vct.dir, quantile=50, 
+create_PSD <- function(db, vct.dir, quantile=50, 
                               param = 'Qc_mid', 
                               breaks){
 
@@ -66,9 +68,10 @@ create.PSD <- function(db, vct.dir, quantile=50,
   # Return list of unique files
   vct.list <- unique(vct.table$file)
 
-  #####################################
-  ### create PSD for each timepoint ###
-  ######################################
+
+
+
+  ### create PSD for each timepoint 
   i <- 
   distribution <- NULL
   for(file.name in vct.list){
@@ -127,32 +130,40 @@ create.PSD <- function(db, vct.dir, quantile=50,
 }
 
 
-#' Transform size distribution by time
+#' Manipulate size distribution
 #'
 #' @param distribution Data frame of size distribution over time, (x time; y size classes). 
-#' First column must be time (POSIXt class object), second column must name of the population; other columns represent the different size classes.
-#' Size classes can represent either diameter or carbon quota (assuming spherical particles).
+#'  First column must be time (POSIXt class object), second column must name of the population; other columns represent the different size classes.
+#'  Size classes can represent either diameter or carbon quota (assuming spherical particles).
 #' @param time.step Time resolution (must be higher than 3 minutes). Default is 1 hour
 #' @param diam.to.Qc Convert diameters into carbon quotas as described in
-#' Menden-Deuer, S. & Lessard, E. J. Carbon to volume relationships for dinoflagellates, diatoms, and other protist plankton.
-#' Limnol. Oceanogr. 45, 569–579 (2000).
+#'  Menden-Deuer, S. and Lessard, E. J. Carbon to volume relationships for dinoflagellates, diatoms, and other protist plankton.
+#'  Limnol. Oceanogr. 45, 569–579 (2000).
 #' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of diam.to.Qc)
 #' @param abundance.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). 
 #' Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
 #' @param size.interval.to.mean Transform size class intervals to mean values (i.e. convert breaks (min, max] to mean). 
-#' @return Size distribution with temporal resolution defined by time.step
+#' @return Size distribution 
+#' @name transform_PSD
 #' @examples
 #' \dontrun{
-#' distribution <- transform.PSD(distribution, time.step="1 hour")
+#' distribution <- transform_PSD(distribution, time.step="1 hour")
 #' }
 #' @export
-transform.PSD <- function(distribution, time.step="1 hour", 
-                                        diam.to.Qc=T, Qc.to.diam=F, 
+transform_PSD <- function(distribution, time.step="1 hour", 
+                                        diam.to.Qc=F, Qc.to.diam=F, 
                                         abundance.to.biomass=F,
                                         size.interval.to.mean=F){
-
+  
+  # Check that 'time' is a POSIXt class object 
   if(! lubridate::is.POSIXt(distribution$time)){
   print("Time is not recognized as POSIXt class")
+  stop
+  }
+
+  # Check that 'pop' column is there 
+  if(!any(names(distribution)=='pop')){
+    print("column 'pop' is missing")
   stop
   }
 
@@ -209,15 +220,20 @@ transform.PSD <- function(distribution, time.step="1 hour",
 #' @param lwd Line width for the lines
 #' @param z.type "lin" for linear scaling of z values, "log" for logarithmic scaling
 #' @return Plot carbon biomass in each size class
+#' @name plot_PSD
 #' @examples
 #' \dontrun{
-#' plot.PSD(distribution)
+#' plot_PSD(distribution)
 #' }
 #' @export
-plot.PSD <- function(distribution, lwd=4, z.type='log'){
+plot_PSD <- function(distribution, lwd=4, z.type='log'){
 
     require(plotly)
-    group.colors <- c(unknown="grey", prochloro=viridis::viridis(4)[1],synecho=viridis::viridis(4)[2],picoeuk=viridis::viridis(4)[3], croco=viridis::viridis(4)[4])
+    group.colors <- c(unknown="grey", 
+                      prochloro=viridis::viridis(4)[1],
+                      synecho=viridis::viridis(4)[2],
+                      picoeuk=viridis::viridis(4)[3], 
+                      croco=viridis::viridis(4)[4])
 
     # convert time as factor to be compatible with plotting
     distribution$time <- as.factor(distribution$time)
@@ -229,7 +245,9 @@ plot.PSD <- function(distribution, lwd=4, z.type='log'){
     d <- d[order(d$time),]
 
     plotly::plot_ly() %>%
-          plotly::add_trace(data=d, x= ~ time, y = ~ variable, z = ~ value, type='scatter3d', mode='lines', line=list(width=lwd), color=~pop, colors=group.colors) %>%
+          plotly::add_trace(data=d, x= ~ time, y = ~ variable, z = ~ value, 
+                            type='scatter3d', mode='lines', line=list(width=lwd), 
+                            color=~pop, colors=group.colors) %>%
           plotly::layout(scene = list(xaxis = list(autorange = "reversed"),
                               yaxis = list(title="size classes"),
                               zaxis = list(title="", type= z.type)))
