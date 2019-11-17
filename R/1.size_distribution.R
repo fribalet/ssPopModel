@@ -12,8 +12,7 @@
 #' \dontrun{
 #' distribution <- size.distribution(db, vct.dir, quantile=50, popname="synecho", channel="Qc_mid", delta=0.125, m=60)
 #' }
-#' @export size.distribution
-
+#' @export 
 size.distribution <- function(db, vct.dir, quantile=50,
                       param ='Qc_mid',
                       breaks){
@@ -82,8 +81,8 @@ size.distribution <- function(db, vct.dir, quantile=50,
 
     # retrieve volume of virtual correct
       # flow rate (mL min-1)
-      fr <- flowrate(sfl[sfl$file == file.name, 'stream_pressure'], inst=inst)$flow_rate
-      # convert to µL min-1
+      fr <- popcycle::flowrate(sfl[sfl$file == file.name, 'stream_pressure'], inst=inst)$flow_rate
+      # convert to microL min-1
       fr <- fr * 1000
       # acquisition time (min)
       acq.time <- sfl[sfl$file == file.name, 'file_duration']/60
@@ -103,7 +102,7 @@ size.distribution <- function(db, vct.dir, quantile=50,
     for(p in phyto){
       # get particle count
       psd <- table(cut(dat[which(dat$pop == p),PARAM], breaks))
-      # Get particle concentration in each bin (10^-3 cells µL-1 or 10^3 cells L-1)
+      # Get particle concentration in each bin (10^-3 cells microL-1 or 10^3 cells L-1)
       psd <- round(1000 * psd / volume, 3)
       PSD <- rbind(PSD, psd)
     }
@@ -128,25 +127,25 @@ size.distribution <- function(db, vct.dir, quantile=50,
 }
 
 
-
 #' Bin size distribution by time
 #'
-#' @param distribution Data frame of size distribution over time, (x time; y size classes). First column must be time (POSIXt class object), second column must name of the population; other columns represent the different size classes.
-#'   Size classes can represent either diameter or carbon quota (assuming spherical particles).
+#' @param distribution Data frame of size distribution over time, (x time; y size classes). 
+#' First column must be time (POSIXt class object), second column must name of the population; other columns represent the different size classes.
+#' Size classes can represent either diameter or carbon quota (assuming spherical particles).
 #' @param time.step Time resolution (must be higher than 3 minutes). Default is 1 hour
 #' @param diam.to.Qc Convert diameters into carbon quotas as described in
 #' Menden-Deuer, S. & Lessard, E. J. Carbon to volume relationships for dinoflagellates, diatoms, and other protist plankton.
 #' Limnol. Oceanogr. 45, 569–579 (2000).
 #' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of Menden-Deuer, S. & Lessard, E. J. 2000)
-#' @param abundance.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
+#' @param abundance.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). 
+#' Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
 #' @param size.interval.to.mean Transform size class intervals to mean values (i.e. convert breaks (min, max] to mean). 
 #' @return Size distribution with temporal resolution defined by time.step
 #' @examples
 #' \dontrun{
 #' distribution <- bin.distribution.by.time(distribution, time.step="1 hour")
 #' }
-#' @export bin.distribution.by.time
-
+#' @export
 transform.size.distribution <- function(distribution, time.step="1 hour", diam.to.Qc=T, Qc.to.diam=F, abundance.to.biomass=F,size.interval.to.mean=F){
 
   if(! lubridate::is.POSIXt(distribution$time)){
@@ -198,11 +197,12 @@ transform.size.distribution <- function(distribution, time.step="1 hour", diam.t
 }
 
 
-
 #' Plot size distribution
 #'
-#' @param distribution Data frame of size distribution over time, (x time; y size classes). First column must be time (POSIXt class object), second column must name of the population; other columns represent the different size classes.
-#'   Size classes can represent either diameter or carbon quota (assuming spherical particles).
+#' @param distribution Data frame of size distribution over time, (x time; y size classes). 
+#' First column must be time (POSIXt class object), second column must name of the population;
+#' other columns represent the different size classes.
+#' Size classes can represent either diameter or carbon quota (assuming spherical particles).
 #' @param lwd Line width for the lines
 #' @param z.type "lin" for linear scaling of z values, "log" for logarithmic scaling
 #' @return Plot carbon biomass in each size class
@@ -210,8 +210,7 @@ transform.size.distribution <- function(distribution, time.step="1 hour", diam.t
 #' \dontrun{
 #' plot.size.distribution(distribution)
 #' }
-#' @export plot.biomass.distribution
-
+#' @export
 plot.size.distribution <- function(distribution, lwd=4, z.type='log'){
 
     require(plotly)
