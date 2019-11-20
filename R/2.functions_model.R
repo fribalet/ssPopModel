@@ -183,7 +183,7 @@ sigma_lsq <- function(params=params, Edata=Edata, distribution=distribution, res
 
 			for(hr in res){
 					B <- matrix_conct_fast(hr=hr-1, Edata=Edata, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
-					wt <- B %*% PDF[,hr]/sum(PDF[,hr]) # calculate the projected size-frequency distribution
+					wt <- B %*% PDF[,hr]/sum(PDF[,hr], na.rm=T) # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
 					sigma[,hr] <-  (PDF[,hr+1] - round(TotN[hr+1]*wt.norm))^2 # ABSOLUTE observed value - fitted value
 					}
@@ -225,7 +225,7 @@ sigma_hl <- function(params=params, Edata=Edata, distribution=distribution, reso
         d <- 1.345
 			for(hr in res){
 					B <- matrix_conct_fast(hr=hr-1, Edata=Edata, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
-					wt <- B %*% PDF[,hr]/sum(PDF[,hr]) # calculate the projected size-frequency distribution
+					wt <- B %*% PDF[,hr]/sum(PDF[,hr], na.rm=T) # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
                   # Huber loss calculation
                     a <- PDF[,hr+1] - round(TotN[hr+1]*wt.norm)
