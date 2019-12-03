@@ -107,7 +107,7 @@ matrix_conct_fast <- function(hr, Edata, volbins, gmax, dmax, b, E_star, resol){
 		## division
 		del <- delta(volbins, dmax=dmax, b=b)
 			
-			if(hr <= t.nodiv){div  <- matrix(data=0, 1, m)
+			if(hr < t.nodiv){div  <- matrix(data=0, 1, m)
 			}else{div <- matrix(del, 1, m)}
     
 
@@ -118,7 +118,7 @@ matrix_conct_fast <- function(hr, Edata, volbins, gmax, dmax, b, E_star, resol){
 		# Subdiagonal (-1) growth 
 		growth_ind <- seq(2,m^2,by=m+1) 
 		# Superdiagonal (+1) respiration 
-		resp_ind <- seq(m+1, m^2, by=m+1) 
+		resp_ind <- seq((m+1)*2, m^2, by=m+1) 
 		# Superdiagonal (j-1) division
 		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) 
 
