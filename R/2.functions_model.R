@@ -19,7 +19,7 @@ delta <- function(volbins, dmax, b){
     del <- dmax * (v)^b / (1 + (v)^b)
 	d <- matrix(del, 1, length(volbins))
 	
-	# Small phytoplanktoin (i=1,..., j-1) are less than twice as big as the smallest size class, and so are prohibited to divide
+	# Small phytoplankton (i=1,..., j-1) are less than twice as big as the smallest size class, and so are prohibited to divide
 	d[1:(j-1)] <- 0
 	
 	return(d)
@@ -132,16 +132,17 @@ matrix_conct_fast <- function(hr, Edata, volbins, gmax, dmax, b, E_star, resol){
 			# Stasis (main diagonal)
 			A[stasis_ind] <- (1-div)*(1-growth)*(1-resp) # the hr/dt part in the indexing is because each hour is broken up into dt segments for the irradiance spline
 			A[m,m] <- (1-div[m])*(1-resp)
+			A[1,1] <- (1-growth)
 
 			# Cell growth (subdiagonal)
-			A[growth_ind] <- growth*(1-div[1:(m-1)])*(1-resp)
+			A[growth_ind] <- growth*(1-div[1:(m-1)])
 
 			# Division (first row and superdiagonal j-1)
 			A[div_ind] <- 2 * div[j:m] # The cell division terms for large (i > = j) phytoplankton
 
 			# Respiration (superdiagonal)
-			A[1,2] <- A[1,2]  + resp
-			A[resp_ind] <- resp*(1-div[2:m])*(1-growth)
+			#A[1,2] <- A[1,2]  + resp
+			A[resp_ind] <- resp*(1-div[3:m])*(1-growth)
 
 					if(t == 1){B <- A}else{B <- A %*% B}
 			}
@@ -179,7 +180,7 @@ sigma_lsq <- function(params=params, Edata=Edata, distribution=distribution, res
                 gmax <- as.numeric(params[1]) 
                 dmax <- as.numeric(params[2])
                 b <- as.numeric(params[3]) * 10
-                E_star <- as.numeric(params[4]) * 1000
+                E_star <- as.numeric(params[4]) * 5000
 
 			for(hr in res){
 					B <- matrix_conct_fast(hr=hr-1, Edata=Edata, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
@@ -220,7 +221,7 @@ sigma_hl <- function(params=params, Edata=Edata, distribution=distribution, reso
                 gmax <- as.numeric(params[1]) 
                 dmax <- as.numeric(params[2]) 
                 b <- as.numeric(params[3]) * 10
-                E_star <- as.numeric(params[4]) * 1000
+                E_star <- as.numeric(params[4]) * 5000
 
         d <- 1.345
 			for(hr in res){
@@ -269,7 +270,7 @@ determine_opt_para <- function(distribution=distribution,Edata=Edata,resol=resol
 		f <- function(params) sigma_lsq(params, Edata, distribution, resol)
 		#f <- function(params) sigma_hl(params, Edata, distribution, resol)
 
-		opt <- DEoptim::DEoptim(f, lower=c(0,0,0,0), upper=c(1,1,1,1), 
+		opt <- DEoptim::DEoptim(f, lower=c(1e-6,1e-6,1e-6,1e-6), upper=c(1,1,1,1), 
 								control=DEoptim.control(itermax=1000, 
 														reltol=1e-3, 
 														trace=10, 
@@ -283,7 +284,7 @@ determine_opt_para <- function(distribution=distribution,Edata=Edata,resol=resol
         gmax <- as.numeric(params[1]) 
         dmax <- as.numeric(params[2])
         b <- as.numeric(params[3]) * 10
-        E_star <- as.numeric(params[4]) * 1000
+        E_star <- as.numeric(params[4]) * 5000
 		resnorm <- opt$optim$bestval
 		
 		# opt <- cma_es(par=c(0.5,0.5,0.5,0.5),f, lower=c(0,0,0,0), upper=c(1,1,1,1))
