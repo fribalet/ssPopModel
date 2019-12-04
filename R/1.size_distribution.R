@@ -142,7 +142,8 @@ create_PSD <- function(db, vct.dir, quantile=50,
 #' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of diam.to.Qc)
 #' @param abundance.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). 
 #' Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
-#' @param size.interval.to.mean Transform size class intervals to mean values (i.e. convert breaks (min, max] to mean). 
+#' @param size.interval.to.mean Transform size class intervals to geometric mean values 
+#' (i.e. convert breaks (min, max] to geometric mean defined as sqrt(mean*max). 
 #' @return Size distribution 
 #' @name transform_PSD
 #' @examples
@@ -192,9 +193,9 @@ transform_PSD <- function(distribution, time.step="1 hour",
   }
 
   if(size.interval.to.mean){
-    # transform size class intervals to mean values (i.e. convert breaks (min, max] to mean). 
+    # transform size class intervals to mean values (i.e. convert breaks (min, max] to geom mean). 
     breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1,2)])),",")
-    midval <- unlist(list(lapply(breaks, function(x) mean(as.numeric(x)))))
+    midval <- unlist(list(lapply(breaks, function(x) sqrt(mean(as.numeric(x))*max(as.numeric(x))))))
     colnames(distribution)[-c(1,2)] <- midval
   }
 
