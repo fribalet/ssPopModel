@@ -12,11 +12,17 @@ delta <- function(volbins, dmax, b){
 	dmax <- as.numeric(dmax)
 	b <- as.numeric(b)
 
-	#find the sie that represent twice the size of the smallest size class
+	#find the size that represent twice the size of the smallest size class
 	j <- findInterval(2 * volbins[1], volbins)
 	
-	v <- volbins - volbins[j-1]
-    del <- dmax * (v)^b / (1 + (v)^b)
+	# scale volbins to allow smooth transition over volbins
+	v <- volbins - volbins[j-1] 
+	
+	# rescale volbins so values < 1, for compatibility with delta function (Hynes et al. 2015)
+	v.norm <- v/max(v)
+	
+	# calculate probability of division
+    del <-   dmax * v.norm^(b*10) / (1 + v.norm^(b*10))
 	d <- matrix(del, 1, length(volbins))
 	
 	# Small phytoplankton (i=1,..., j-1) are less than twice as big as the smallest size class, and so are prohibited to divide
@@ -40,8 +46,8 @@ gamma_t <- function(Edata, gmax, E_star){
 	E_star <- as.numeric(E_star)
 
 	# y <- (1-exp(-Edata/E_star)) * gmax # original 2003 model
-	y <- (gmax/E_star) * Edata 
-	y[which(Edata >= E_star)] <- gmax
+	y <- (gmax/(5000*E_star)) * Edata 
+	y[which(Edata >= 5000*E_star)] <- gmax
 	return(y)
 }
 
@@ -58,11 +64,12 @@ rho_t <- function(y){
 
 	y <- as.numeric(y)
 	
-	# 30% carbon respired over a 24h-period, transformed to probability to shrink
-	r <-  mean(y[which(y > 0)]) * 0.3 - y 
+	# 30% total fixed carbon is respired over a 24h-period
+	r <-  0.3 * mean(y[which(y > 0)]) - y 
 
-	# probablity to decrease size class is 0 when growth > respiration
+	# probablity to decrease size class = 0 when growth > respiration
 	r[which(r < 0)] <- 0 
+
 	return(r)
 }
 
@@ -118,7 +125,7 @@ matrix_conct_fast <- function(hr, Edata, volbins, gmax, dmax, b, E_star, resol){
 		# Subdiagonal (-1) growth 
 		growth_ind <- seq(2,m^2,by=m+1) 
 		# Superdiagonal (+1) respiration 
-		resp_ind <- seq((m+1)*2, m^2, by=m+1) 
+		resp_ind <- seq(m+1, m^2, by=m+1) 
 		# Superdiagonal (j-1) division
 		div_ind <- seq((((j-1)*m)+1), m^2, by=m+1) 
 
@@ -141,8 +148,7 @@ matrix_conct_fast <- function(hr, Edata, volbins, gmax, dmax, b, E_star, resol){
 			A[div_ind] <- 2 * div[j:m] # The cell division terms for large (i > = j) phytoplankton
 
 			# Respiration (superdiagonal)
-			#A[1,2] <- A[1,2]  + resp
-			A[resp_ind] <- resp*(1-div[3:m])*(1-growth)
+			A[resp_ind] <- resp*(1-div[2:m])*(1-growth)
 
 					if(t == 1){B <- A}else{B <- A %*% B}
 			}
@@ -171,24 +177,24 @@ sigma_lsq <- function(params=params, Edata=Edata, distribution=distribution, res
                 # E_star <- 0.4
 				time.interval <- median(diff(distribution$time))
 				res <- which(diff(distribution$time) == time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
-                PDF <- t(distribution[,-c(1)])
-				dim <- dim(PDF)
+                PSD <- t(distribution[,-c(1)])
+				dim <- dim(PSD)
 				sigma <- matrix(NA, dim[1], dim[2]-1) # preallocate sigma
-				TotN <- as.matrix(colSums(PDF))
-                volbins <- as.numeric(rownames(PDF))
+				TotN <- as.matrix(colSums(PSD))
+                volbins <- as.numeric(rownames(PSD))
         
                 gmax <- as.numeric(params[1]) 
                 dmax <- as.numeric(params[2])
-                b <- as.numeric(params[3]) * 10
-                E_star <- as.numeric(params[4]) * 5000
+                b <- as.numeric(params[3]) 
+                E_star <- as.numeric(params[4])
 
 			for(hr in res){
 					B <- matrix_conct_fast(hr=hr-1, Edata=Edata, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
-					wt <- B %*% PDF[,hr]/sum(PDF[,hr], na.rm=T) # calculate the projected size-frequency distribution
+					wt <- B %*% PSD[,hr]/sum(PSD[,hr], na.rm=T) # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
-					sigma[,hr] <-  (PDF[,hr+1] - round(TotN[hr+1]*wt.norm))^2 # ABSOLUTE observed value - fitted value
+					sigma[,hr] <-  (PSD[,hr+1] - round(TotN[hr+1]*wt.norm))^2 # ABSOLUTE observed value - fitted value
 					}
-			sigma <- colSums(sigma)/colSums(PDF[,-1])
+			sigma <- colSums(sigma)/colSums(PSD[,-1])
 			sigma <- mean(sigma, na.rm=T)
 			return(sigma)
 
@@ -212,24 +218,24 @@ sigma_hl <- function(params=params, Edata=Edata, distribution=distribution, reso
 
 			    time.interval <- median(diff(distribution$time))
 				res <- which(diff(distribution$time) == time.interval)# select time that have at least 2 consecutive time points, required for comparing the projection to the next time point
-                PDF <- t(distribution[,-c(1)])
-				dim <- dim(PDF)
+                PSD <- t(distribution[,-c(1)])
+				dim <- dim(PSD)
 				sigma <- matrix(NA, 1, dim[2]-1) # preallocate sigma
-				TotN <- as.matrix(colSums(PDF))
-                volbins <- as.numeric(rownames(PDF))
+				TotN <- as.matrix(colSums(PSD))
+                volbins <- as.numeric(rownames(PSD))
         
                 gmax <- as.numeric(params[1]) 
                 dmax <- as.numeric(params[2]) 
-                b <- as.numeric(params[3]) * 10
-                E_star <- as.numeric(params[4]) * 5000
+                b <- as.numeric(params[3])
+                E_star <- as.numeric(params[4])
 
         d <- 1.345
 			for(hr in res){
 					B <- matrix_conct_fast(hr=hr-1, Edata=Edata, volbins=volbins, gmax=gmax, dmax=dmax, b=b, E_star=E_star, resol=resol)
-					wt <- B %*% PDF[,hr]/sum(PDF[,hr], na.rm=T) # calculate the projected size-frequency distribution
+					wt <- B %*% PSD[,hr]/sum(PSD[,hr], na.rm=T) # calculate the projected size-frequency distribution
 					wt.norm <- wt/sum(wt, na.rm=T) # normalize distribution
                   # Huber loss calculation
-                    a <- PDF[,hr+1] - round(TotN[hr+1]*wt.norm)
+                    a <- PSD[,hr+1] - round(TotN[hr+1]*wt.norm)
                     loss <- ifelse(abs(a) <= d,
                                        0.5 * a^2,
                                        d * (abs(a) - 0.5 * d))
@@ -283,16 +289,16 @@ determine_opt_para <- function(distribution=distribution,Edata=Edata,resol=resol
 		params <- opt$optim$bestmem
         gmax <- as.numeric(params[1]) 
         dmax <- as.numeric(params[2])
-        b <- as.numeric(params[3]) * 10
-        E_star <- as.numeric(params[4]) * 5000
+        b <- as.numeric(params[3]) 
+        E_star <- as.numeric(params[4])
 		resnorm <- opt$optim$bestval
 		
 		# opt <- cma_es(par=c(0.5,0.5,0.5,0.5),f, lower=c(0,0,0,0), upper=c(1,1,1,1))
 		# params <- opt$par
         # gmax <- as.numeric(params[1]) 
         # dmax <- as.numeric(params[2])
-        # b <- as.numeric(params[3]) * 10
-        # E_star <- as.numeric(params[4]) * 1000
+        # b <- as.numeric(params[3]) 
+        # E_star <- as.numeric(params[4])
 		# resnorm <- opt$value
 
 		####################################################
@@ -318,7 +324,7 @@ determine_opt_para <- function(distribution=distribution,Edata=Edata,resol=resol
 		#############################
 		mu_N <- diff(log(rowSums(PSD[,-c(1)], na.rm=T))) / as.numeric(diff(PSD$time))
 		print("hourly growth rates:")
-		print(round(mu_N[-c(24:25)],3)) # last two values are NA , ?? due to error in hr+1 projection ??
+		print(round(mu_N[-c(25)],3)) # last two values are NA , ?? due to NA from Edata
 
 		parameters <- data.frame(cbind(gmax,dmax,b,E_star,resnorm), row.names=NULL)
 
