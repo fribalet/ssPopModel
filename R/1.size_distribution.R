@@ -88,7 +88,7 @@ create_PSD <- function(db, vct.dir, quantile=50, param = 'Qc_mid', breaks){
     # acquisition time (min)
     acq.time <- sfl[sfl$file == file.name, 'file_duration']/60
     # retrieve opp/evt
-    opp.evt <- opp[opp$file == file.name,'opp_evt_ratio'])
+    opp.evt <- opp[opp$file == file.name,'opp_evt_ratio']
     # volume in microL
     volume <- round(fr * acq.time * opp.evt, 6)
 
@@ -147,9 +147,11 @@ return(distribution)
 #' }
 #' @export
 transform_PSD <- function(distribution, time.step="1 hour", 
-                                        diam.to.Qc=F, Qc.to.diam=F, 
-                                        abundance.to.biomass=F,
-                                        size.interval.to.mean=F){
+                                        diam.to.Qc=FALSE, 
+                                        Qc.to.diam=FALSE, 
+                                        count.to.abundance=FALSE, 
+                                        count.to.biomass=FALSE,
+                                        size.interval.to.mean=FALSE){
   
   # Check that 'time' is a POSIXt class object 
   if(! lubridate::is.POSIXt(distribution$time)){
