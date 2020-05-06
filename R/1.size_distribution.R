@@ -70,8 +70,8 @@ create_PSD <- function(db, vct.dir, quantile=50, param = 'Qc_mid', breaks){
 
 
   ### create PSD for each timepoint 
-  i <- 
-  distribution <- NULL
+  i <- 1
+  distribution <- tibble()
   for(file.name in vct.list){
 
     #file.name <- vct.list[2]
@@ -81,19 +81,19 @@ create_PSD <- function(db, vct.dir, quantile=50, param = 'Qc_mid', breaks){
     time <- sfl[sfl$file == file.name, 'date']
 
     # retrieve volume of stream
-      # flow rate (mL min-1)
-      fr <- popcycle::flowrate(sfl[sfl$file == file.name, 'stream_pressure'], inst=inst)$flow_rate
-      # convert to microL min-1
-      fr <- fr * 1000
-      # acquisition time (min)
-      acq.time <- sfl[sfl$file == file.name, 'file_duration']/60
-      # volume in microL
-      volume <- round(fr * acq.time, 3)
+    # flow rate (mL min-1)
+    fr <- popcycle::flowrate(sfl[sfl$file == file.name, 'stream_pressure'], inst=inst)$flow_rate
+    # convert to microL min-1
+    fr <- fr * 1000
+    # acquisition time (min)
+    acq.time <- sfl[sfl$file == file.name, 'file_duration']/60
+    # volume in microL
+    volume <- round(fr * acq.time)
 
     # retrieve opp/evt
-      opp.evt <- opp[opp$file == file.name,'opp_evt_ratio']
+    evt.opp <- round(1/opp[opp$file == file.name,'opp_evt_ratio'])
 
-    # retrieve data
+    # retrieve PSD data
     vct <- get.vct.by.file(vct.dir, file.name, quantile=QUANT)
 
     # remove Beads from data
@@ -107,25 +107,19 @@ create_PSD <- function(db, vct.dir, quantile=50, param = 'Qc_mid', breaks){
       psd <- table(cut(dat[which(dat$pop == p),PARAM], breaks))
       PSD <- rbind(PSD, psd)
     }
-
+  
     # add time and population name
-    PSD <- cbind(time, pop=as.character(phyto), volume, opp.evt, PSD)
+    PSD <- as_tibble(PSD)
+    PSD <- PSD %>% add_column(time=as.POSIXct(time,format = "%FT%T", tz = "GMT"), pop=as.character(phyto), volume, evt.opp, .before=1)
 
     # bind data together
-    distribution <- data.frame(rbind(distribution, PSD),check.names=F)
+    distribution <- bind_rows(distribution, PSD)
 
     i <- i + 1
     flush.console()
   }
-  #convert data frame to tibble, with correct classes (tibble wrongly assumed the class of each column, arghh!!!!)
-  distribution <- as_tibble(distribution)
-    distribution$time <- as.POSIXct(distribution$time,format = "%FT%T", tz = "GMT")
-    distribution$pop <- as.character(distribution$pop)
-    distribution$volume <- as.numeric(distribution$volume)
-    distribution$opp.evt <- as.numeric(distribution$opp.evt)
-    distribution[,-c(1:4)] <- mutate_all(distribution[,-c(1:4)], function(x) as.numeric(as.character(x)))
-
-  return(distribution)
+ 
+return(distribution)
 
 }
 
@@ -140,7 +134,7 @@ create_PSD <- function(db, vct.dir, quantile=50, param = 'Qc_mid', breaks){
 #'  Menden-Deuer, S. and Lessard, E. J. Carbon to volume relationships for dinoflagellates, diatoms, and other protist plankton.
 #'  Limnol. Oceanogr. 45, 569–579 (2000).
 #' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of diam.to.Qc)
-#' @param count.to.abundance Calcualte cell abundance in each size class (count x volume x opp / evt count). 
+#' @param count.to.abundance Calcualte cell abundance in each size class (count x volume / evtopp count). 
 #' @param count.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). 
 #' Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
 #' @param size.interval.to.mean Transform size class intervals to geometric mean values 
@@ -188,12 +182,12 @@ transform_PSD <- function(distribution, time.step="1 hour",
   }
   if(count.to.abundance){
     # multiply count by volume of virtual core (volume x opp / evt count) to get carbon biomass in each size class
-    distribution[-c(1:4)] <- distribution[-c(1:4)] * distribituion$volume * distribution$opp.evt
+    distribution[-c(1:4)] <- distribution[-c(1:4)] * distribituion$volume / distribution$evt.opp
   }
 
   if(count.to.biomass){
     # multiply abundance by carbon quotas to get carbon biomass in each size class
-    distribution[-c(1:4)] <- distribution[-c(1:4)] * distribituion$volume * distribution$opp.evt
+    distribution[-c(1:4)] <- distribution[-c(1:4)] * distribituion$volume / distribution$evt.opp
     midval <- unlist(list(lapply(breaks, function(x) mean(as.numeric(x)))))
     distribution[-c(1:4)] <- sweep(distribution[-c(1:4)], MARGIN=2, midval, `*`)
   }
