@@ -87,12 +87,12 @@ create_PSD <- function(db, vct.dir, quantile=50, param = 'Qc_mid', breaks){
     fr <- fr * 1000
     # acquisition time (min)
     acq.time <- sfl[sfl$file == file.name, 'file_duration']/60
-    # volume in microL
-    volume <- round(fr * acq.time)
-
     # retrieve opp/evt
-    evt.opp <- round(1/opp[opp$file == file.name,'opp_evt_ratio'])
+    opp.evt <- opp[opp$file == file.name,'opp_evt_ratio'])
+    # volume in microL
+    volume <- round(fr * acq.time * opp.evt, 6)
 
+ 
     # retrieve PSD data
     vct <- get.vct.by.file(vct.dir, file.name, quantile=QUANT)
 
@@ -110,7 +110,7 @@ create_PSD <- function(db, vct.dir, quantile=50, param = 'Qc_mid', breaks){
   
     # add time and population name
     PSD <- as_tibble(PSD)
-    PSD <- PSD %>% add_column(time=as.POSIXct(time,format = "%FT%T", tz = "GMT"), pop=as.character(phyto), volume, evt.opp, .before=1)
+    PSD <- PSD %>% add_column(time=as.POSIXct(time,format = "%FT%T", tz = "GMT"), pop=as.character(phyto), volume, .before=1)
 
     # bind data together
     distribution <- bind_rows(distribution, PSD)
@@ -166,43 +166,44 @@ transform_PSD <- function(distribution, time.step="1 hour",
   # Menden-Deuer, S. & Lessard conversion factors
   d <- 0.261; e <- 0.860
   # convert size interval (factors) into data.frame
-  breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:4)])),",")
+  breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:3)])),",")
 
   if(Qc.to.diam){
     #convert Qc into diam using the Menden-Deuer conversion
     b <- lapply(breaks, function(x) round(2*(3/(4*pi)*(as.numeric(x)/d)^(1/e))^(1/3),5))
-    colnames(distribution)[-c(1:4)] <- sub("\\)","\\]", sub("c","",as.character(b)))
+    colnames(distribution)[-c(1:3)] <- sub("\\)","\\]", sub("c","",as.character(b)))
   }
 
   if(diam.to.Qc){
     # convert diam into Qc using the Menden-Deuer conversion
     b <- lapply(breaks, function(x) round(d*(4/3*pi*(0.5*as.numeric(x))^3)^e,5))
-    colnames(distribution)[-c(1:4)] <- sub("\\)","\\]", sub("c","",as.character(b)))
-    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:4)])),",")
+    colnames(distribution)[-c(1:3)] <- sub("\\)","\\]", sub("c","",as.character(b)))
+    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:3)])),",")
   }
+  
   if(count.to.abundance){
     # multiply count by volume of virtual core (volume x opp / evt count) to get carbon biomass in each size class
-    distribution[-c(1:4)] <- distribution[-c(1:4)] * distribituion$volume / distribution$evt.opp
+    distribution[-c(1:3)] <- distribution[-c(1:3)] * distribituion$volume / distribution$evt.opp
   }
 
   if(count.to.biomass){
     # multiply abundance by carbon quotas to get carbon biomass in each size class
-    distribution[-c(1:4)] <- distribution[-c(1:4)] * distribituion$volume / distribution$evt.opp
+    distribution[-c(1:3)] <- distribution[-c(1:3)] * distribituion$volume / distribution$evt.opp
     midval <- unlist(list(lapply(breaks, function(x) mean(as.numeric(x)))))
-    distribution[-c(1:4)] <- sweep(distribution[-c(1:4)], MARGIN=2, midval, `*`)
+    distribution[-c(1:3)] <- sweep(distribution[-c(1:3)], MARGIN=2, midval, `*`)
   }
 
   if(size.interval.to.mean){
     # transform size class intervals to mean values (i.e. convert breaks (min, max] to geom mean). 
-    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:4)])),",")
+    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:3)])),",")
     midval <- unlist(list(lapply(breaks, function(x) sqrt(mean(as.numeric(x))*max(as.numeric(x))))))
-    colnames(distribution)[-c(1:4)] <- midval
+    colnames(distribution)[-c(1:3)] <- midval
   }
 
   # Calculate the mean in each size class over new time interval
   dist.bin <- distribution %>%
         group_by(time = cut(time, breaks=time.step), pop) %>%
-        summarise_all(list(mean))
+        summarise_all(list(sum))
 
   # time was converted to factor, and need to be convereted back to POSIXt
   dist.bin$time <- as.POSIXct(dist.bin$time, tz='GMT')
@@ -236,8 +237,8 @@ plot_PSD <- function(distribution, lwd=4, z.type='log'){
                       picoeuk=viridis::viridis(4)[3], 
                       croco=viridis::viridis(4)[4])
 
-    # remove volume and opp to evt ratio
-    distribution <- distribution[,-c(3,4)]
+    # remove volume
+    distribution <- distribution[,-c(3)]
 
     # convert time as factor to be compatible with plotting
     distribution$time <- as.factor(distribution$time)
