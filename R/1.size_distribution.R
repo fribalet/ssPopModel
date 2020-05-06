@@ -15,9 +15,7 @@
 #' distribution <- create_PSD(db, vct.dir, quantile=50, channel="Qc_mid", breaks)
 #' }
 #' @export 
-create_PSD <- function(db, vct.dir, quantile=50, 
-                              param = 'Qc_mid', 
-                              breaks){
+create_PSD <- function(db, vct.dir, quantile=50, param = 'Qc_mid', breaks){
 
   QUANT <- as.numeric(quantile)
   PARAM <- as.character(param)
@@ -82,16 +80,18 @@ create_PSD <- function(db, vct.dir, quantile=50,
     #retrieve time
     time <- sfl[sfl$file == file.name, 'date']
 
-    # retrieve volume of virtual correct
+    # retrieve volume of stream
       # flow rate (mL min-1)
       fr <- popcycle::flowrate(sfl[sfl$file == file.name, 'stream_pressure'], inst=inst)$flow_rate
       # convert to microL min-1
       fr <- fr * 1000
       # acquisition time (min)
       acq.time <- sfl[sfl$file == file.name, 'file_duration']/60
-      # opp/evt
-      opp.evt.ratio <- opp[opp$file == file.name,'opp_evt_ratio']
-    volume <- opp.evt.ratio * fr * acq.time
+      # volume in microL
+      volume <- round(fr * acq.time, 3)
+
+    # retrieve opp/evt
+      opp.evt <- opp[opp$file == file.name,'opp_evt_ratio']
 
     # retrieve data
     vct <- get.vct.by.file(vct.dir, file.name, quantile=QUANT)
@@ -105,13 +105,11 @@ create_PSD <- function(db, vct.dir, quantile=50,
     for(p in phyto){
       # get particle count
       psd <- table(cut(dat[which(dat$pop == p),PARAM], breaks))
-      # Get particle concentration in each bin (10^-3 cells microL-1 or 10^3 cells L-1)
-      psd <- round(1000 * psd / volume, 3)
       PSD <- rbind(PSD, psd)
     }
 
     # add time and population name
-    PSD <- cbind(time, pop=as.character(phyto), PSD)
+    PSD <- cbind(time, pop=as.character(phyto), volume, opp.evt, PSD)
 
     # bind data together
     distribution <- data.frame(rbind(distribution, PSD),check.names=F)
@@ -123,7 +121,9 @@ create_PSD <- function(db, vct.dir, quantile=50,
   distribution <- as_tibble(distribution)
     distribution$time <- as.POSIXct(distribution$time,format = "%FT%T", tz = "GMT")
     distribution$pop <- as.character(distribution$pop)
-    distribution[,-c(1,2)] <- mutate_all(distribution[,-c(1,2)], function(x) as.numeric(as.character(x)))
+    distribution$volume <- as.numeric(distribution$volume)
+    distribution$opp.evt <- as.numeric(distribution$opp.evt)
+    distribution[,-c(1:4)] <- mutate_all(distribution[,-c(1:4)], function(x) as.numeric(as.character(x)))
 
   return(distribution)
 
@@ -140,7 +140,8 @@ create_PSD <- function(db, vct.dir, quantile=50,
 #'  Menden-Deuer, S. and Lessard, E. J. Carbon to volume relationships for dinoflagellates, diatoms, and other protist plankton.
 #'  Limnol. Oceanogr. 45, 569–579 (2000).
 #' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of diam.to.Qc)
-#' @param abundance.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). 
+#' @param count.to.abundance Calcualte cell abundance in each size class (count x volume x opp / evt count). 
+#' @param count.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). 
 #' Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
 #' @param size.interval.to.mean Transform size class intervals to geometric mean values 
 #' (i.e. convert breaks (min, max] to geometric mean defined as sqrt(mean*max). 
@@ -171,32 +172,37 @@ transform_PSD <- function(distribution, time.step="1 hour",
   # Menden-Deuer, S. & Lessard conversion factors
   d <- 0.261; e <- 0.860
   # convert size interval (factors) into data.frame
-  breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1,2)])),",")
+  breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:4)])),",")
 
   if(Qc.to.diam){
     #convert Qc into diam using the Menden-Deuer conversion
     b <- lapply(breaks, function(x) round(2*(3/(4*pi)*(as.numeric(x)/d)^(1/e))^(1/3),5))
-    colnames(distribution)[-c(1,2)] <- sub("\\)","\\]", sub("c","",as.character(b)))
+    colnames(distribution)[-c(1:4)] <- sub("\\)","\\]", sub("c","",as.character(b)))
   }
 
   if(diam.to.Qc){
     # convert diam into Qc using the Menden-Deuer conversion
     b <- lapply(breaks, function(x) round(d*(4/3*pi*(0.5*as.numeric(x))^3)^e,5))
-    colnames(distribution)[-c(1,2)] <- sub("\\)","\\]", sub("c","",as.character(b)))
-    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1,2)])),",")
+    colnames(distribution)[-c(1:4)] <- sub("\\)","\\]", sub("c","",as.character(b)))
+    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:4)])),",")
+  }
+  if(count.to.abundance){
+    # multiply count by volume of virtual core (volume x opp / evt count) to get carbon biomass in each size class
+    distribution[-c(1:4)] <- distribution[-c(1:4)] * distribituion$volume * distribution$opp.evt
   }
 
-  if(abundance.to.biomass){
+  if(count.to.biomass){
     # multiply abundance by carbon quotas to get carbon biomass in each size class
+    distribution[-c(1:4)] <- distribution[-c(1:4)] * distribituion$volume * distribution$opp.evt
     midval <- unlist(list(lapply(breaks, function(x) mean(as.numeric(x)))))
-    distribution[-c(1,2)] <- sweep(distribution[-c(1,2)], MARGIN=2, midval, `*`)
+    distribution[-c(1:4)] <- sweep(distribution[-c(1:4)], MARGIN=2, midval, `*`)
   }
 
   if(size.interval.to.mean){
     # transform size class intervals to mean values (i.e. convert breaks (min, max] to geom mean). 
-    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1,2)])),",")
+    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:4)])),",")
     midval <- unlist(list(lapply(breaks, function(x) sqrt(mean(as.numeric(x))*max(as.numeric(x))))))
-    colnames(distribution)[-c(1,2)] <- midval
+    colnames(distribution)[-c(1:4)] <- midval
   }
 
   # Calculate the mean in each size class over new time interval
@@ -235,6 +241,9 @@ plot_PSD <- function(distribution, lwd=4, z.type='log'){
                       synecho=viridis::viridis(4)[2],
                       picoeuk=viridis::viridis(4)[3], 
                       croco=viridis::viridis(4)[4])
+
+    # remove volume and opp to evt ratio
+    distribution <- distribution[,-c(3,4)]
 
     # convert time as factor to be compatible with plotting
     distribution$time <- as.factor(distribution$time)
