@@ -5,8 +5,7 @@ Date: 2016-11-10
 Author: Francois Ribalet
 Maintainer: Francois Ribalet <ribalet@uw.edu>
 Description: ssPopModel is a R package that uses size-structured matrix population model to estimate hourly division rates of microbial populations using flow cytometry data. 
-Depends: DEoptim, popcycle
-Suggests: zoo, rgl
+Depends: DEoptim, popcycle, plotly, tidyverse
 License: GPL-2
-URL: http://seaflow.ocean.washington.edu
-RoxygenNote: 6.1.1
+URL: https://francoisribalet.netlify.app/
+RoxygenNote: 7.1.0

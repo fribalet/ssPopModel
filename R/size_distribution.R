@@ -124,20 +124,19 @@ return(distribution)
 }
 
 
-#' Manipulate size distribution
+#' Manipulate the size distribution created by FCSplankton::create_PSD(). 
+#' Calculate the sum of particles in each size class over specific temporal resolution; transform the header
 #'
-#' @param distribution Data frame of size distribution over time, (x time; y size classes). 
-#'  First column must be time (POSIXt class object), second column must name of the population; other columns represent the different size classes.
+#' @param distribution Particle size disitribution created by FCSplankton::create_PSD().
+#'  i.e., a tibble of size distribution over time. First column must be time (POSIXt class object);
+#'  Second column must name of the population; other columns represent the different size classes. 
 #'  Size classes can represent either diameter or carbon quota (assuming spherical particles).
-#' @param time.step Time resolution (must be higher than 3 minutes). Default is 1 hour
-#' @param diam.to.Qc Convert diameters into carbon quotas as described in
+#' @param time.step Time step over which to sum the number of particles in each size class. Default 1 hour, must be higher than 3 minutes
+#' @param diam.to.Qc Convert diameter to carbon quotas as described in
 #'  Menden-Deuer, S. and Lessard, E. J. Carbon to volume relationships for dinoflagellates, diatoms, and other protist plankton.
 #'  Limnol. Oceanogr. 45, 569–579 (2000).
-#' @param Qc.to.diam Convert carbon quotas into diameters (reciprocal of diam.to.Qc)
-#' @param count.to.abundance Calcualte cell abundance in each size class (count x volume / evtopp count). 
-#' @param count.to.biomass Calcualte total carbon biomass in each size class (abundance x Qc). 
-#' Warning: If size class values represent diameters, make sure to set diam.to.Qc = TRUE.
-#' @param size.interval.to.mean Transform size class intervals to geometric mean values 
+#' @param Qc.to.diam Convert carbon quota into diameter (reciprocal of diam.to.Qc)
+#' @param interval.to.geomean Transform size class intervals to geometric mean values 
 #' (i.e. convert breaks (min, max] to geometric mean defined as sqrt(mean*max). 
 #' @return Size distribution 
 #' @name transform_PSD
@@ -149,9 +148,7 @@ return(distribution)
 transform_PSD <- function(distribution, time.step="1 hour", 
                                         diam.to.Qc=FALSE, 
                                         Qc.to.diam=FALSE, 
-                                        count.to.abundance=FALSE, 
-                                        count.to.biomass=FALSE,
-                                        size.interval.to.mean=FALSE){
+                                        interval.to.geomean=FALSE){
   
   # Check that 'time' is a POSIXt class object 
   if(! lubridate::is.POSIXt(distribution$time)){
@@ -172,34 +169,20 @@ transform_PSD <- function(distribution, time.step="1 hour",
 
   if(Qc.to.diam){
     #convert Qc into diam using the Menden-Deuer conversion
-    b <- lapply(breaks, function(x) round(2*(3/(4*pi)*(as.numeric(x)/d)^(1/e))^(1/3),5))
+    b <- lapply(breaks, function(x) round(2*(3/(4*pi)*(as.numeric(x)/d)^(1/e))^(1/3),6))
     colnames(distribution)[-c(1:3)] <- sub("\\)","\\]", sub("c","",as.character(b)))
   }
 
   if(diam.to.Qc){
     # convert diam into Qc using the Menden-Deuer conversion
-    b <- lapply(breaks, function(x) round(d*(4/3*pi*(0.5*as.numeric(x))^3)^e,5))
+    b <- lapply(breaks, function(x) round(d*(4/3*pi*(0.5*as.numeric(x))^3)^e,6))
     colnames(distribution)[-c(1:3)] <- sub("\\)","\\]", sub("c","",as.character(b)))
-    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:3)])),",")
-  }
-  
-  if(count.to.abundance){
-    # multiply count by volume of virtual core (volume x opp / evt count) to get carbon biomass in each size class
-    distribution[-c(1:3)] <- distribution[-c(1:3)] * distribituion$volume / distribution$evt.opp
   }
 
-  if(count.to.biomass){
-    # multiply abundance by carbon quotas to get carbon biomass in each size class
-    distribution[-c(1:3)] <- distribution[-c(1:3)] * distribituion$volume / distribution$evt.opp
-    midval <- unlist(list(lapply(breaks, function(x) mean(as.numeric(x)))))
-    distribution[-c(1:3)] <- sweep(distribution[-c(1:3)], MARGIN=2, midval, `*`)
-  }
-
-  if(size.interval.to.mean){
+  if(interval.to.geomean){
     # transform size class intervals to mean values (i.e. convert breaks (min, max] to geom mean). 
-    breaks <- strsplit(sub("\\]","",sub("\\(","",colnames(distribution)[-c(1:3)])),",")
     midval <- unlist(list(lapply(breaks, function(x) sqrt(mean(as.numeric(x))*max(as.numeric(x))))))
-    colnames(distribution)[-c(1:3)] <- midval
+    colnames(distribution)[-c(1:3)] <- round(midval,6)
   }
 
   # Calculate the mean in each size class over new time interval
