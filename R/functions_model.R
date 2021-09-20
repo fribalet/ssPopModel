@@ -19,7 +19,7 @@ delta <- function(volbins, dmax, b){
 	v <- volbins - volbins[j-1] 
 	
 	# rescale volbins so values < 1, for compatibility with delta function (Hynes et al. 2015)
-	v.norm <- v/max(v)
+	v.norm <- volbins/max(volbins)
 	
 	# calculate probability of division
     del <-   dmax * v.norm^(b*10) / (1 + v.norm^(b*10))
@@ -46,8 +46,8 @@ gamma_t <- function(Edata, gmax, E_star){
 	E_star <- as.numeric(E_star)
 
 	# y <- (1-exp(-Edata/E_star)) * gmax # original 2003 model
-	y <- (gmax/(5000*E_star)) * Edata 
-	y[which(Edata >= 5000*E_star)] <- gmax
+	y <- (gmax/(1000*E_star)) * Edata 
+	y[which(Edata >= 1000*E_star)] <- gmax
 	return(y)
 }
 
@@ -109,7 +109,7 @@ matrix_conct_fast <- function(hr, Edata, volbins, gmax, dmax, b, E_star, resol){
 		y <- gamma_t(Edata=Edata, gmax=gmax, E_star=E_star)
 
 		## respiration
-		r <- rho_t(y=y)
+		r <- 0 * rho_t(y=y)
 
 		## division
 		del <- delta(volbins, dmax=dmax, b=b)
@@ -149,6 +149,7 @@ matrix_conct_fast <- function(hr, Edata, volbins, gmax, dmax, b, E_star, resol){
 
 			# Respiration (superdiagonal)
 			A[resp_ind] <- resp*(1-div[2:m])*(1-growth)
+			A[c(m-1),m] <- resp # the last size class can not grow
 
 					if(t == 1){B <- A}else{B <- A %*% B}
 			}
@@ -273,16 +274,16 @@ determine_opt_para <- function(distribution=distribution,Edata=Edata,resol=resol
 		print("Optimizing gmax, dmax, b and E_star")
 		start <- Sys.time()
 
-		f <- function(params) sigma_lsq(params, Edata, distribution, resol)
-		#f <- function(params) sigma_hl(params, Edata, distribution, resol)
+		#f <- function(params) sigma_lsq(params, Edata, distribution, resol)
+		f <- function(params) sigma_hl(params, Edata, distribution, resol)
 
 		opt <- DEoptim::DEoptim(f, lower=c(1e-6,1e-6,1e-6,1e-6), upper=c(1,1,1,1), 
 								control=DEoptim.control(itermax=1000, 
-														reltol=1e-3, 
+														reltol=1e-6, 
 														trace=10, 
 														steptol=100, 
 														strategy=2, 
-														parallelType=1))
+														parallelType=0))
 
 		print(Sys.time()-start)
 

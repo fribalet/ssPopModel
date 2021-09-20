@@ -8,4 +8,4 @@ Description: ssPopModel is a R package that uses size-structured matrix populati
 Depends: DEoptim, popcycle, plotly, tidyverse
 License: GPL-2
 URL: https://francoisribalet.netlify.app/
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1

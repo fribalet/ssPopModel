@@ -4,20 +4,16 @@
 \alias{create_PSD}
 \title{Create particle size distribution}
 \usage{
-create_PSD(db, vct.dir, quantile = 50, param = "Qc_mid", breaks)
+create_PSD(db, vct.dir, breaks, quantile = 50)
 }
 \arguments{
 \item{db}{SQLite3 database file path.}
 
 \item{vct.dir}{VCT file directory..}
 
-\item{quantile}{Filtering function.}
-
-\item{param}{Parameter from VCT to create the size distribution.
-Can be either diameter (diam_lwr, diam_mid or diam_upr)
-or carbon quotas (Qc_lwr, Qc_mid or Qc_upr)}
-
 \item{breaks}{Breaks must be a vector of values defining the breaks for the size distribution.}
+
+\item{quantile}{OPP Filtering quantile.}
 }
 \value{
 Size distribution
@@ -28,7 +24,13 @@ Create particle size distribution
 \examples{
 \dontrun{
  
-breaks <- 'something here'
-distribution <- create_PSD(db, vct.dir, quantile=50, channel="Qc_mid", breaks)
+breaks <- # for Qc
+min <- 0.003 # minimum quotas (3 fgC / cell)
+delta <- 1/18 # to define the width of each bin
+m <- 300 # number of bins
+breaks <- round(min*2^(((1:m)-1)*delta),4) # log2 space bin
+print(breaks)
+
+distribution <- create_PSD(db, vct.dir, breaks, quantile = 50)
 }
 }
